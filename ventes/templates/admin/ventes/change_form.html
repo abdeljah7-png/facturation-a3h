@@ -3,6 +3,10 @@
 {% block extrahead %}
 {{ block.super }}
 
+<!-- ========================= -->
+<!-- INFO CLIENT AUTOMATIQUE -->
+<!-- ========================= -->
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -16,25 +20,30 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!clientId) return;
 
         fetch("/client-info/" + clientId + "/")
-            .then(response => response.json())
-            .then(data => {
+        .then(response => response.json())
+        .then(data => {
 
-                const mfField = document.querySelector(".field-mf_client .readonly");
-                const adresseField = document.querySelector(".field-adresse_client .readonly");
-                const telField = document.querySelector(".field-telephone_client .readonly");
-                const emailField = document.querySelector(".field-email_client .readonly");
+            const mfField = document.querySelector(".field-mf_client .readonly");
+            const adresseField = document.querySelector(".field-adresse_client .readonly");
+            const telField = document.querySelector(".field-telephone_client .readonly");
+            const emailField = document.querySelector(".field-email_client .readonly");
 
-                if (mfField) mfField.innerText = data.mf || "";
-                if (adresseField) adresseField.innerText = data.adresse || "";
-                if (telField) telField.innerText = data.telephone || "";
-                if (emailField) emailField.innerText = data.email || "";
+            if (mfField) mfField.innerText = data.mf || "";
+            if (adresseField) adresseField.innerText = data.adresse || "";
+            if (telField) telField.innerText = data.telephone || "";
+            if (emailField) emailField.innerText = data.email || "";
 
-            });
+        });
 
     });
 
 });
 </script>
+
+
+<!-- ========================= -->
+<!-- PRODUIT -> PRIX + TVA -->
+<!-- ========================= -->
 
 <script>
 document.addEventListener("change", function(e) {
@@ -46,59 +55,77 @@ document.addEventListener("change", function(e) {
 
         if (!produitId) return;
 
-        fetch("/produit-info/" + produitId + "/")
-            .then(response => response.json())
-            .then(data => {
+        fetch("/ventes/produit-info/" + produitId + "/")
+        .then(response => response.json())
+        .then(data => {
 
-                const row = select.closest("tr");
+            const row = select.closest("tr");
 
-                const prixField = row.querySelector("input[name$='prix_ht']");
-                const tvaField = row.querySelector("input[name$='taux_tva']");
+            const prixField = row.querySelector("input[name$='prix_ht']");
+            const tvaField = row.querySelector("input[name$='taux_tva']");
 
-                if (prixField) prixField.value = data.prix_ht;
-                if (tvaField) tvaField.value = data.taux_tva;
+            if (prixField) prixField.value = data.prix_ht;
+            if (tvaField) tvaField.value = data.taux_tva;
 
-            });
+        });
 
     }
 
 });
 </script>
 
+
+<!-- ========================= -->
+<!-- CALCUL LIGNE FACTURE -->
+<!-- ========================= -->
+
 <script>
+
 function calculerLigne(row) {
 
     const qte = parseFloat(row.querySelector("input[name$='quantite']")?.value || 0);
     const prix = parseFloat(row.querySelector("input[name$='prix_ht']")?.value || 0);
+    const remise = parseFloat(row.querySelector("input[name$='remise']")?.value || 0);
     const tva = parseFloat(row.querySelector("input[name$='taux_tva']")?.value || 0);
 
     const totalHT = qte * prix;
-    const totalTVA = totalHT * (tva / 100);
-    const totalTTC = totalHT + totalTVA;
+    const montantRemise = totalHT * (remise / 100);
+    const baseTVA = totalHT - montantRemise;
+    const totalTVA = baseTVA * (tva / 100);
+    const totalTTC = baseTVA + totalTVA;
 
     let totalCell = row.querySelector(".total-ligne");
 
     if (!totalCell) {
+
         totalCell = document.createElement("td");
         totalCell.classList.add("total-ligne");
+
         row.appendChild(totalCell);
+
     }
 
     totalCell.innerHTML = "<b>" + totalTTC.toFixed(3) + " TND</b>";
+
 }
+
 
 document.addEventListener("input", function(e) {
 
     if (
         e.target.name.includes("quantite") ||
         e.target.name.includes("prix_ht") ||
+        e.target.name.includes("remise") ||
         e.target.name.includes("taux_tva")
     ) {
+
         const row = e.target.closest("tr");
         calculerLigne(row);
+
     }
 
 });
+
 </script>
 
 {% endblock %}

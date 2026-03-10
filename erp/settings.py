@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'clients',
     'produits',
     'ventes',
+    'cbc',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

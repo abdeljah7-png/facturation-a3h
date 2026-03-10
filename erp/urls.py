@@ -22,7 +22,9 @@ admin.site.site_header="Application A3H"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('ventes.urls')),
+    path('ventes/', include('ventes.urls')),
     path("", include("clients.urls")),
     path('', include('core.urls')),
+    path("core/", include("core.urls")),
+    path("cbc/", include("cbc.urls")),
 ]

@@ -8,6 +8,6 @@ urlpatterns = [
     path("facture/<int:facture_id>/pdf/", facture_pdf, name="facture_pdf"),
     path("facture/<int:facture_id>/xml/", facture_xml, name="facture_xml"),
     path("facture/<int:facture_id>/envoyer/", envoyer_facture, name="envoyer_facture"),
-     path("produit-info/<int:produit_id>/", produit_info, name="produit_info"),
-     path("facture/<int:facture_id>/xml/", views.facture_xml, name="facture_xml"),
+    path("produit-info/<int:produit_id>/", views.produit_info, name="produit_info"),
+    path("facture/<int:facture_id>/xml/", views.facture_xml, name="facture_xml"),
 ]

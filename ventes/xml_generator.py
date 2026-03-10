@@ -1,90 +1,112 @@
-from django.http import HttpResponse
 import xml.etree.ElementTree as ET
+from django.http import HttpResponse
 from datetime import datetime
+
+from core.models import Societe
+from ventes.models import Facture
+from cbc.models import MessageSpec, ReportingEntity, CbcBody, CbcReport, Summary
 
 
 def generer_facture_xml(facture):
 
-    totaux = facture.calculer_totaux()
+    societe = Societe.objects.first()
+    messagespec = MessageSpec.objects.first()
 
-    # ======================
-    # ROOT
-    # ======================
-    root = ET.Element("Invoice")
-    root.set("xmlns", "urn:tunisie:facture:electronique:1.0")
-    root.set("generated", datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
+    root = ET.Element("CBC_OECD")
 
-    # ======================
-    # IDENTIFICATION
-    # ======================
-    ET.SubElement(root, "InvoiceNumber").text = str(facture.numero)
-    ET.SubElement(root, "IssueDate").text = facture.date.strftime("%Y-%m-%d")
-    ET.SubElement(root, "Currency").text = "TND"
+    # =========================
+    # MessageSpec
+    # =========================
 
-    # ======================
-    # SUPPLIER (SOCIETE)
-    # ======================
-    supplier = ET.SubElement(root, "Supplier")
+    msg = ET.SubElement(root, "MessageSpec")
 
-    ET.SubElement(supplier, "Name").text = "MA SOCIETE SARL"
-    ET.SubElement(supplier, "TaxNumber").text = "1234567/A/B/C/000"
-    ET.SubElement(supplier, "Country").text = "TN"
+    ET.SubElement(msg, "SendingEntityIN").text = messagespec.sending_entity_in
+    ET.SubElement(msg, "TransmittingCountry").text = messagespec.transmitting_country
+    ET.SubElement(msg, "ReceivingCountry").text = messagespec.receiving_country
+    ET.SubElement(msg, "MessageType").text = "CBC"
+    ET.SubElement(msg, "MessageRefId").text = messagespec.message_ref_id
+    ET.SubElement(msg, "ReportingPeriod").text = str(messagespec.reporting_period)
+    ET.SubElement(msg, "Timestamp").text = datetime.now().isoformat()
 
-    # ======================
-    # CUSTOMER
-    # ======================
-    customer = ET.SubElement(root, "Customer")
+    # =========================
+    # ReportingEntity
+    # =========================
 
-    ET.SubElement(customer, "Name").text = facture.client.nom
-    ET.SubElement(customer, "TaxNumber").text = facture.mf_client or ""
-    ET.SubElement(customer, "Address").text = facture.adresse_client or ""
-    ET.SubElement(customer, "Phone").text = facture.telephone_client or ""
-    ET.SubElement(customer, "Email").text = facture.email_client or ""
+    reporting = ReportingEntity.objects.first()
 
-    # ======================
-    # INVOICE LINES
-    # ======================
-    lines = ET.SubElement(root, "InvoiceLines")
+    body = ET.SubElement(root, "CbcBody")
 
-    for ligne in facture.lignes.all():
+    reporting_xml = ET.SubElement(body, "ReportingEntity")
 
-        line = ET.SubElement(lines, "Line")
+    ET.SubElement(reporting_xml, "ResCountryCode").text = reporting.country_code
 
-        montant_ht = ligne.quantite * ligne.prix_ht
-        montant_tva = montant_ht * ligne.taux_tva / 100
-        montant_ttc = montant_ht + montant_tva
+    tin = ET.SubElement(reporting_xml, "TIN")
+    tin.text = societe.matricule_fiscal
+    tin.set("issuedBy", reporting.country_code)
 
-        ET.SubElement(line, "ProductName").text = str(ligne.produit)
-        ET.SubElement(line, "Quantity").text = str(ligne.quantite)
-        ET.SubElement(line, "UnitPriceHT").text = f"{ligne.prix_ht:.3f}"
-        ET.SubElement(line, "VATRate").text = f"{ligne.taux_tva}"
-        ET.SubElement(line, "AmountHT").text = f"{montant_ht:.3f}"
-        ET.SubElement(line, "AmountVAT").text = f"{montant_tva:.3f}"
-        ET.SubElement(line, "AmountTTC").text = f"{montant_ttc:.3f}"
+    ET.SubElement(reporting_xml, "Name").text = societe.nom
 
-    # ======================
-    # TOTALS
-    # ======================
-    totals = ET.SubElement(root, "Totals")
+    address = ET.SubElement(reporting_xml, "Address")
 
-    ET.SubElement(totals, "TotalHT").text = f"{totaux['total_ht']:.3f}"
-    ET.SubElement(totals, "TotalVAT").text = f"{totaux['total_tva']:.3f}"
-    ET.SubElement(totals, "TotalTTC").text = f"{totaux['total_ttc']:.3f}"
+    ET.SubElement(address, "Street").text = societe.adresse
+    ET.SubElement(address, "City").text = societe.ville
+    ET.SubElement(address, "CountryCode").text = reporting.country_code
 
-    # ======================
-    # LEGAL NOTE
-    # ======================
-    ET.SubElement(root, "LegalNotice").text = (
-        "TVA appliquée conformément à la législation tunisienne en vigueur."
-    )
+    # =========================
+    # CbcReport
+    # =========================
 
-    # ======================
-    # GENERATION
-    # ======================
+    reports = CbcReport.objects.all()
+
+    for report in reports:
+
+        report_xml = ET.SubElement(body, "CbcReport")
+
+        ET.SubElement(report_xml, "ResCountryCode").text = report.country_code
+
+        # Revenues
+    #    revenues = ET.SubElement(report_xml, "Revenues")
+        revenues = ET.SubElement(report_xml, "Revenues")
+
+        unrelated = getattr(report, "unrelated_revenue", 0)
+        related = getattr(report, "related_revenue", 0)
+        total = getattr(report, "total_revenue", unrelated + related)
+
+        ET.SubElement(revenues, "Unrelated").text = str(unrelated)
+        ET.SubElement(revenues, "Related").text = str(related)
+        ET.SubElement(revenues, "Total").text = str(total)
+        ET.SubElement(report_xml, "ProfitOrLoss").text = str(report.profit_loss)
+
+        ET.SubElement(report_xml, "ProfitOrLoss").text = str(getattr(report, "profit_loss", 0))
+        ET.SubElement(report_xml, "IncomeTaxPaid").text = str(getattr(report, "tax_paid", 0))
+        ET.SubElement(report_xml, "IncomeTaxAccrued").text = str(getattr(report, "tax_accrued", 0))
+        ET.SubElement(report_xml, "Capital").text = str(getattr(report, "capital", 0))
+        ET.SubElement(report_xml, "Earnings").text = str(getattr(report, "earnings", 0))
+        ET.SubElement(report_xml, "NbEmployees").text = str(getattr(report, "employees", 0))
+        ET.SubElement(report_xml, "TangibleAssets").text = str(getattr(report, "assets", 0))
+        # =========================
+        # Summary
+        # =========================
+
+        summaries = Summary.objects.filter(report=report)
+
+        for s in summaries:
+
+            summary = ET.SubElement(report_xml, "Summary")
+
+            ET.SubElement(summary, "EntityName").text = s.entity_name
+            ET.SubElement(summary, "CountryCode").text = s.country_code
+            ET.SubElement(summary, "MainBusinessActivity").text = s.activity
+
+    # =========================
+    # Génération XML
+    # =========================
+
     tree = ET.ElementTree(root)
 
     response = HttpResponse(content_type="application/xml")
-    response["Content-Disposition"] = f'attachment; filename="facture_{facture.numero}.xml"'
+
+    response["Content-Disposition"] = "attachment; filename=cbc_report.xml"
 
     tree.write(response, encoding="utf-8", xml_declaration=True)
 
