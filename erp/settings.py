@@ -19,8 +19,8 @@ SECRET_KEY = 'django-insecure-jpd!&kzd=l2%%@-t*a36+%i9gl^%vtfha120kfwroggflz-3@9
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['a3h-app.onrender.com']
 
+ALLOWED_HOSTS = ['*']
 
 # APPLICATIONS
 INSTALLED_APPS = [
