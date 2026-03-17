@@ -121,3 +121,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # DEFAULT AUTO FIELD
 # ----------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CREATE_SUPERUSER = os.environ.get("CREATE_SUPERUSER", "False") == "True"
+
