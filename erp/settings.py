@@ -20,7 +20,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-default-key') 
 DEBUG = False  # ⚠️ Toujours False en production
 
 ALLOWED_HOSTS = ['fattah.pythonanywhere.com']
-
+ALLOWED_HOSTS = ['fattah.pythonanywhere.com', '127.0.0.1', 'localhost']
 # ----------------------
 # APPLICATIONS
 # ----------------------
