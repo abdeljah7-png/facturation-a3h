@@ -120,7 +120,6 @@ STATICFILES_DIRS = [
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-erp/static/favicon.ico
 
 # WhiteNoise (Django 5 compatible)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
