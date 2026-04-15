@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
- 
+
 # BASE DIRECTORY
 # ----------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'ventes',
     'reglements',
     'comptes',
+    'editions',
     'cbc',
 ]
 
@@ -80,6 +81,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.societe_context',
             ],
         },
     },

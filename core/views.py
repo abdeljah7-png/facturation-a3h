@@ -4,14 +4,9 @@ from django.shortcuts import render, redirect
 from .forms import SocieteForm
 from .models import Societe
 
-from django.http import HttpResponse
 
 def acceuil(request):
-    return HttpResponse("VERSION MAJ OK")
-
-
-#def acceuil(request):
- #   return render(request, "acceuil.html")
+    return render(request, "acceuil.html")
 
 
 def societe_create(request):

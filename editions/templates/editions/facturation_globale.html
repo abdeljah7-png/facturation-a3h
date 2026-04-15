@@ -1,0 +1,134 @@
+<h2>Facturation Globale</h2>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="message {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Formulaire de filtre client/date -->
+<form method="get" class="filter-form">
+    <select name="client">
+        <option value="">-- Sélectionner un client --</option>
+        {% for c in clients %}
+            <option value="{{ c.id }}" {% if request.GET.client == c.id|stringformat:"s" %}selected{% endif %}>{{ c.nom }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="date" name="date_debut" value="{{ request.GET.date_debut }}">
+    <input type="date" name="date_fin" value="{{ request.GET.date_fin }}">
+
+    <button type="submit">🔍 Filtrer</button>
+</form>
+
+<!-- Formulaire pour facturer les bons sélectionnés -->
+<form method="post">
+    {% csrf_token %}
+    <div class="table-card">
+        <table id="bons-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Date</th>
+                    <th>Numéro</th>
+                    <th>HT</th>
+                    <th>Remise</th>
+                    <th>Base TVA</th>
+                    <th>TVA</th>
+                    <th>TTC</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bon in bons %}
+                <tr>
+                    <td><input type="checkbox" name="bons_ids" value="{{ bon.id }}" class="bon-checkbox"></td>
+                    <td>{{ bon.date }}</td>
+                    <td>{{ bon.numero }}</td>
+                    <td class="ht">{{ bon.total_ht|floatformat:2 }}</td>
+                    <td class="rem">{{ bon.total_rem|floatformat:2 }}</td>
+                    <td class="base">{{ bon.base_tva|floatformat:2 }}</td>
+                    <td class="tva">{{ bon.total_tva|floatformat:2 }}</td>
+                    <td class="ttc">{{ bon.total_ttc|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8">Aucun bon disponible pour facturation</td></tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals">
+                    <td colspan="3">Totaux sélectionnés</td>
+                    <td id="total-ht">0.00</td>
+                    <td id="total-rem">0.00</td>
+                    <td id="total-base">0.00</td>
+                    <td id="total-tva">0.00</td>
+                    <td id="total-ttc">0.00</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="action-buttons">
+        <button type="submit">
+            🧾 Facturer les bons sélectionnés
+        </button>
+    </div>
+</form>
+
+<style>
+body { font-family: 'Segoe UI', sans-serif; background:#f0f2f5; margin:0; padding:20px; color:#2f3640; }
+h2 { text-align:center; margin-bottom:30px; }
+.filter-form { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); max-width:900px; margin:0 auto 30px auto; }
+.filter-form select,input[type="date"] { padding:10px 15px; border:1px solid #dcdde1; border-radius:8px; font-size:1rem; transition:all 0.3s; }
+.filter-form select:focus,input[type="date"]:focus { outline:none; border-color:#0097e6; box-shadow:0 0 5px rgba(0,151,230,0.5); }
+.filter-form button { padding:10px 25px; border:none; background:#0097e6; color:white; border-radius:8px; cursor:pointer; transition:all 0.3s; }
+.filter-form button:hover { background:#006bb3; }
+.table-card { background:white; border-radius:12px; padding:15px; box-shadow:0 4px 15px rgba(0,0,0,0.08); overflow-x:auto; }
+table { width:100%; border-collapse:collapse; min-width:700px; }
+table th, table td { padding:12px 15px; text-align:center; }
+table th { background:#0097e6; color:white; font-weight:600; }
+table tr:nth-child(even) { background:#f7f9fc; }
+table tr:hover { background:#e1e5ea; }
+tfoot tr.totals { background:#dcdde1; font-weight:600; }
+.action-buttons { margin-top:20px; display:flex; justify-content:center; }
+.action-buttons button { padding:12px 25px; font-size:1rem; border:none; border-radius:8px; cursor:pointer; color:white; background:#44bd32; transition:all 0.3s; }
+.action-buttons button:hover { background:#2f9e21; }
+.messages { max-width:900px; margin:0 auto 20px auto; }
+.message { padding:12px 20px; border-radius:8px; margin-bottom:10px; font-weight:600; }
+.message.success { background:#44bd32; color:white; }
+.message.warning { background:#f39c12; color:white; }
+@media(max-width:768px){.filter-form{flex-direction:column;align-items:center;} table{font-size:0.9rem;} .action-buttons button{width:100%;}}
+</style>
+
+<script>
+// Calcul des totaux dynamiques pour les bons cochés
+function parseNumber(str){ return parseFloat(str.replace(',','').trim()) || 0; }
+
+function calcTotals(){
+    let totalHT=0,totalRem=0,totalBase=0,totalTVA=0,totalTTC=0;
+    document.querySelectorAll(".bon-checkbox").forEach(cb=>{
+        if(cb.checked){
+            const row=cb.closest("tr");
+            totalHT+=parseNumber(row.querySelector(".ht").textContent);
+            totalRem+=parseNumber(row.querySelector(".rem").textContent);
+            totalBase+=parseNumber(row.querySelector(".base").textContent);
+            totalTVA+=parseNumber(row.querySelector(".tva").textContent);
+            totalTTC+=parseNumber(row.querySelector(".ttc").textContent);
+        }
+    });
+    document.getElementById("total-ht").textContent=totalHT.toFixed(2);
+    document.getElementById("total-rem").textContent=totalRem.toFixed(2);
+    document.getElementById("total-base").textContent=totalBase.toFixed(2);
+    document.getElementById("total-tva").textContent=totalTVA.toFixed(2);
+    document.getElementById("total-ttc").textContent=totalTTC.toFixed(2);
+}
+
+// Recalculer les totaux à chaque changement
+document.querySelectorAll(".bon-checkbox").forEach(cb=>{
+    cb.addEventListener("change",calcTotals);
+});
+
+// Initialiser les totaux
+calcTotals();
+</script>

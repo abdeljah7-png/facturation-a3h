@@ -3,46 +3,77 @@
 <head>
     <title>Relevé Client</title>
     <style>
-        body {
-            font-family: Arial;
-            margin: 20px;
-        }
-        h2 {
-            text-align: left;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .debit {
-            color: red;
-            text-align: right;
-        }
-        .credit {
-            color: green;
-            text-align: right;
-        }
-        .solde {
-            font-weight: bold;
-            text-align: right;
-        }
+        body { font-family: Arial; margin: 20px; }
+        h2 { margin-bottom: 5px; }
+        .header { margin-bottom: 15px; }
+        .filter { margin-top: 10px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #000; padding: 6px; }
+        th { background-color: #f2f2f2; }
+        .debit { color: red; text-align: right; }
+        .credit { color: green; text-align: right; }
+        .solde { font-weight: bold; text-align: right; }
+        .report { background-color: #e6f7ff; font-weight: bold; }
+        .total { margin-top: 15px; font-size: 18px; }
     </style>
 </head>
 <body>
 
-<h2>Relevé Client</h2>
+<div class="header-erp">
 
-<p><strong>Client :</strong> {{ client.nom }}</p>
-<p><strong>Date :</strong> {{ now|date:"d/m/Y" }}</p>
+    <h2>{{ societe.nom }}</h2>
+
+    <p>
+        {{ societe.adresse }} - {{ societe.ville }} - {{ societe.pays }}
+    </p>
+
+    <p>
+        MF : {{ societe.matricule_fiscal }} |
+        Tel : {{ societe.telephone }} |
+        Email : {{ societe.email }}
+    </p>
+
+    <hr>
+
+    <h2>Relevé Client</h2>
+
+</div>
+
+<div class="header">
+    <p><strong>Client :</strong> {{ client.nom }}</p>
+    <p><strong>Date :</strong> {{ now|date:"d/m/Y" }}</p>
+</div>
+
+<!-- 🔍 FILTRE -->
+<form method="get" class="filter">
+    <label>Date début :</label>
+    <input type="date" name="date_debut" value="{{ date_debut }}">
+    <label>Date fin :</label>
+    <input type="date" name="date_fin" value="{{ date_fin }}">
+    <button type="submit">Filtrer</button>
+</form>
+
+<!-- 🔁 REPORT -->
+{% if date_debut %}
+<p><strong>Période :</strong> {{ date_debut }} ➜ {{ date_fin }}</p>
+<p><strong>Report initial :</strong> {{ report|floatformat:3 }}</p>
+{% endif %}
+
+<div style="margin:20px 0; text-align:right;">
+    <a href="{% url 'releve_client_pdf' client.id %}?date_debut={{ date_debut|default:'' }}&date_fin={{ date_fin|default:'' }}"
+       target="_blank"
+       style="
+            background: #28a745;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+       ">
+        📄 Imprimer relevé
+    </a>
+</div>
 
 <table>
     <tr>
@@ -54,23 +85,32 @@
     </tr>
 
     {% for m in lignes %}
-    <tr>
-        <td>{{ m.date }}</td>
+    <tr class="{% if m.libelle == 'REPORT INITIAL' %}report{% endif %}">
+        <td>{{ m.date|date:"d/m/Y" }}</td>
         <td>{{ m.libelle }}</td>
-        <td class="debit">{{ m.debit }}</td>
-        <td class="credit">{{ m.credit }}</td>
-        <td class="solde">{{ m.solde }}</td>
+        <td class="debit">{% if m.debit %}{{ m.debit|floatformat:3 }}{% endif %}</td>
+        <td class="credit">{% if m.credit %}{{ m.credit|floatformat:3 }}{% endif %}</td>
+        <td class="solde">{{ m.solde|floatformat:3 }}</td>
     </tr>
     {% empty %}
     <tr>
         <td colspan="5">Aucun mouvement</td>
     </tr>
     {% endfor %}
+
+    <!-- Ligne des totaux -->
+    <tr style="font-weight:bold; background-color:#f2f2f2;">
+        <td colspan="2">Totaux</td>
+        <td class="debit">{{ total_debit|floatformat:3 }}</td>
+        <td class="credit">{{ total_credit|floatformat:3 }}</td>
+        <td class="solde">{{ solde|floatformat:3 }}</td>
+    </tr>
 </table>
 
-<h3 style="text-align:left;">
-    Solde final : {{ solde }}
-</h3>
+<div class="total">
+    <strong>Solde final : {{ solde|floatformat:3 }}</strong>
+</div>
+
 
 </body>
 </html>

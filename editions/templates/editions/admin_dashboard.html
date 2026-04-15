@@ -1,0 +1,83 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+
+<h1>Dashboard Fattah-Erp</h1>
+
+
+<style>
+.dashboard-horizontal {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    justify-content: space-between;
+}
+
+/* cartes compactes */
+.card-link {
+    flex: 1;
+    padding: 12px 10px;
+    border-radius: 8px;
+    background: #2c3e50;
+    color: #ffffff;
+    text-decoration: none;
+    transition: 0.2s;
+    border-left: 3px solid #3498db;
+    text-align: center;
+}
+
+/* hover léger */
+.card-link:hover {
+    background: #34495e;
+}
+
+/* icône très petit */
+.card-icon {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+/* texte compact et blanc */
+.card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+}
+</style>
+
+<div class="dashboard-horizontal">
+
+    <a href="{% url 'facturation_globale' %}" class="card-link">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Facturation globale</div>
+    </a>
+
+    <a href="{% url 'liste_bons_impression' %}" class="card-link">
+        <div class="card-icon">🚚</div>
+        <div class="card-title">liste des Bons livraison</div>
+    </a>
+
+    <a href="{% url 'liste_factures_impression' %}" class="card-link">
+        <div class="card-icon">🧾</div>
+        <div class="card-title">liste des Factures</div>
+    </a>
+
+    <a href="{% url 'liste_factachats_impression' %}" class="card-link">
+        <div class="card-icon">📦</div>
+        <div class="card-title">Achats periodiques</div>
+    </a>
+
+    <a href="/editions/ventes-mois/" class="card-link">
+        <div class="card-icon">📅</div>
+        <div class="card-title">Ventes/Mois</div>
+    </a>
+
+    <a href="/editions/ventes-an/" class="card-link">
+        <div class="card-icon">📈</div>
+        <div class="card-title">Ventes/An</div>
+    </a>
+
+</div>
+
+{% endblock %}

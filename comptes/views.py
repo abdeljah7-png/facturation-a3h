@@ -120,14 +120,20 @@ def releve_compte_pdf(request, compte_id):
 
     # Entête société
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(2*cm, y, societe.nom if societe else "Société")
+    p.drawString(1*cm, y, societe.nom if societe else "Société")
     y -= 0.6*cm
     p.setFont("Helvetica", 10)
     if societe:
-        p.drawString(2*cm, y, societe.adresse or "")
-        y -= 0.4*cm
-        p.drawString(2*cm, y, f"Tél: {societe.telephone or ''} | Email: {societe.email or ''}")
+        p.drawString(1*cm, y, societe.adresse or "")
+        y -= 0.6*cm
+        p.drawString(1*cm, y, "M.F : " + societe.matricule_fiscal or "")
+        y -= 0.6*cm
+
+        p.drawString(1*cm, y, f"Tél: {societe.telephone or ''} | Email: {societe.email or ''}")
     y -= 1*cm
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(6*cm, y, f"Releve de compte : {compte.libelle or ''}")
+    y -= 2*cm
 
     # Report initial
     p.setFont("Helvetica-Bold", 11)
@@ -161,7 +167,7 @@ def releve_compte_pdf(request, compte_id):
     # Totaux
     data.append(["Totaux", "", f"{total_debit:.3f}", f"{total_credit:.3f}", f"{solde:.3f}"])
 
-    table = Table(data, colWidths=[3*cm, 6*cm, 3*cm, 3*cm, 3*cm])
+    table = Table(data, colWidths=[3*cm, 6*cm, 3*cm, 3*cm, 3*cm])    
     table.setStyle(TableStyle([
         ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
         ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
@@ -173,8 +179,11 @@ def releve_compte_pdf(request, compte_id):
     ]))
 
     w, h = table.wrapOn(p, width-4*cm, y)
-    table.drawOn(p, 2*cm, y-h)
+    table.drawOn(p, 1.5*cm, y-h)
 
+    
+    
     p.showPage()
     p.save()
+
     return response

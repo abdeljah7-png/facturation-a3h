@@ -14,3 +14,199 @@ def fournisseur_info(request, Fournisseur_id):
 
 
     #------------- Releve fournisseur
+from decimal import Decimal
+from django.db.models import Sum
+from .models import Fournisseur
+from achats.models import BonReception
+from reglements.models import ReglementFournisseur
+
+def calcul_releve_fournisseur(fournisseur, date_debut=None, date_fin=None):
+    bons = BonReception.objects.filter(fournisseur=fournisseur)
+    reglements = ReglementFournisseur.objects.filter(fournisseur=fournisseur)
+
+    report = Decimal(fournisseur.solde_initial or 0)
+
+    if date_debut:
+        debit_avant = bons.filter(date__lt=date_debut).aggregate(total=Sum('total_ttc'))['total'] or 0
+        credit_avant = reglements.filter(date__lt=date_debut).aggregate(total=Sum('montant'))['total'] or 0
+        report += Decimal(debit_avant) - Decimal(credit_avant)
+
+        # Filtrer dans la période
+        bons = bons.filter(date__gte=date_debut)
+        reglements = reglements.filter(date__gte=date_debut)
+        if date_fin:
+            bons = bons.filter(date__lte=date_fin)
+            reglements = reglements.filter(date__lte=date_fin)
+
+    mouvements = []
+    for b in bons:
+        mouvements.append({
+            "date": b.date,
+            "libelle": f"Bon n°{b.numero}",
+            "debit": Decimal(b.total_ttc or 0),
+            "credit": Decimal(0)
+        })
+    for r in reglements:
+        mouvements.append({
+            "date": r.date,
+            "libelle": f"Règlement n°{r.numero}",
+            "debit": Decimal(0),
+            "credit": Decimal(r.montant or 0)
+        })
+
+    mouvements.sort(key=lambda x: x["date"])
+
+    # Solde et lignes
+    lignes = []
+    solde = report
+
+    if date_debut:
+        lignes.append({
+            "date": date_debut,
+            "libelle": "REPORT INITIAL",
+            "debit": Decimal(0),
+            "credit": Decimal(0),
+            "solde": report
+        })
+
+    total_debit = Decimal(0)
+    total_credit = Decimal(0)
+
+    for m in mouvements:
+        solde += m["debit"] - m["credit"]
+        m["solde"] = solde
+        lignes.append(m)
+        total_debit += m["debit"]
+        total_credit += m["credit"]
+
+    return lignes, solde, report, total_debit, total_credit
+
+
+from django.shortcuts import render, get_object_or_404
+from datetime import datetime
+from .models import Fournisseur
+
+def releve_fournisseur(request, fournisseur_id):
+    fournisseur = get_object_or_404(Fournisseur, id=fournisseur_id)
+
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+
+    if date_debut:
+        date_debut = datetime.strptime(date_debut, "%Y-%m-%d")
+    if date_fin:
+        date_fin = datetime.strptime(date_fin, "%Y-%m-%d")
+
+    lignes, solde, report, total_debit, total_credit = calcul_releve_fournisseur(fournisseur, date_debut, date_fin)
+
+    return render(request, "fournisseurs/releve_fournisseur.html", {
+        "fournisseur": fournisseur,
+        "lignes": lignes,
+        "solde": solde,
+        "report": report,
+        "total_debit": total_debit,
+        "total_credit": total_credit,
+        "date_debut": date_debut.strftime("%Y-%m-%d") if date_debut else "",
+        "date_fin": date_fin.strftime("%Y-%m-%d") if date_fin else "",
+        "now": datetime.now()
+    })
+
+
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from datetime import datetime
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import cm
+from .models import Fournisseur
+from core.utils import get_societe
+
+def releve_fournisseur_pdf(request, fournisseur_id):
+    fournisseur = get_object_or_404(Fournisseur, id=fournisseur_id)
+
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+
+    if date_debut:
+        date_debut = datetime.strptime(date_debut, "%Y-%m-%d")
+    if date_fin:
+        date_fin = datetime.strptime(date_fin, "%Y-%m-%d")
+
+    lignes, solde, report, total_debit, total_credit = calcul_releve_fournisseur(fournisseur, date_debut, date_fin)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="releve_fournisseur_{fournisseur.id}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+
+
+    # 🏢 SOCIÉTÉ
+    societe = get_societe()
+
+    if not societe:
+        raise Exception("Aucune société définie")
+
+    societe_info = [
+        [Paragraph(f"<b>{societe.nom}</b>", styles["Heading2"])],
+        [Paragraph(f"{societe.adresse} - {societe.ville} - {societe.pays}", styles["Normal"])],
+        [Paragraph(f"MF : {societe.matricule_fiscal}", styles["Normal"])],
+        [Paragraph(f"Tel : {societe.telephone}", styles["Normal"])],
+        [Paragraph(f"Email : {societe.email}", styles["Normal"])],
+    ]
+
+    table_societe = Table(societe_info, colWidths=[500])
+
+    elements.append(Spacer(1, 20))
+    elements.append(table_societe)
+
+    elements.append(Paragraph(f"<b>Relevé Fournisseur</b>", styles['Title']))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(f"Fournisseur : {fournisseur.nom}", styles['Normal']))
+    elements.append(Paragraph(f"Date : {datetime.now().strftime('%d/%m/%Y')}", styles['Normal']))
+
+    if date_debut and date_fin:
+        elements.append(Paragraph(
+            f"Période : {date_debut.strftime('%d/%m/%Y')} - {date_fin.strftime('%d/%m/%Y')}",
+            styles['Normal']
+        ))
+
+    elements.append(Paragraph(f"Report initial : {report:.3f}", styles['Normal']))
+    elements.append(Spacer(1, 15))
+
+    data = [["Date", "Libellé", "Débit", "Crédit", "Solde"]]
+
+    for m in lignes:
+        data.append([
+            m["date"].strftime("%d/%m/%Y"),
+            m["libelle"],
+            f"{m['debit']:.3f}",
+            f"{m['credit']:.3f}",
+            f"{m['solde']:.3f}",
+        ])
+
+    data.append([
+        "Totaux", "",
+        f"{total_debit:.3f}",
+        f"{total_credit:.3f}",
+        f"{solde:.3f}"
+    ])
+
+    table = Table(data, colWidths=[3*cm, 6*cm, 3*cm, 3*cm, 3*cm])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('ALIGN', (2,1), (-1,-1), 'RIGHT'),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('BACKGROUND', (0, len(data)-1), (-1, len(data)-1), colors.lightgrey),
+    ]))
+
+    elements.append(table)
+    elements.append(Spacer(1, 15))
+    elements.append(Paragraph(f"<b>Solde final : {solde:.3f}</b>", styles['Normal']))
+
+    doc.build(elements)
+    return response

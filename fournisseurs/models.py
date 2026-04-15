@@ -7,6 +7,7 @@ class Fournisseur(models.Model):
     adresse = models.TextField(blank=True)
     telephone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)
+    solde_initial=models.DecimalField(max_digits=12, decimal_places =3, null=True, blank=True,default=0 )
     date_creation = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

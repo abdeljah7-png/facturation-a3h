@@ -2,6 +2,8 @@ from django.contrib import admin, messages
 from django.urls import reverse, path
 from django.utils.html import format_html
 from django.shortcuts import redirect
+from django import forms
+from core.utils import get_societe
 
 from .models import (
     Demande,
@@ -128,15 +130,35 @@ class LigneBonReceptionInline(admin.TabularInline):
 # ADMIN BON RECEPTION
 # =====================================================
 
+from django.contrib import admin
+from core.utils import get_societe
+from .models import BonReception
+
+
 @admin.register(BonReception)
 class BonReceptionAdmin(admin.ModelAdmin):
+
+    class Meta:
+        model = BonReception
+        fields = '__all__'
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+
+        societe = get_societe()  # ✔️ OK ici (par requête)
+
+        # 👉 exemple si tu veux injecter une valeur dans un champ
+        if 'societe_nom' in form.base_fields:
+            form.base_fields['societe_nom'].initial = societe.nom
+
+        return form
 
     class Media:
         js = (
             "achats/br_auto_fournisseur.js",
             "achats/produit_auto_achat.js",
         )
-
+        
     inlines = [LigneBonReceptionInline]
 
     list_display = (
@@ -230,18 +252,27 @@ class FactureAchatAdmin(admin.ModelAdmin):
     inlines = [LigneFactureAchatInline]
 
 
-
-
     list_display = (
         "numero",
         "fournisseur",
         "date",
+        "total_ttc",
         "statut_colore",
         "bouton_pdf",
     )
+    list_filter = (
+        "statut",
+        "date",
+    )
+    search_fields = (
+        "numero",
+        "fournisseur__nom",
+    )
+
 
     fields = (
         "numero",
+        "date",
         "fournisseur",
         "mf_fournisseur",
         "adresse_fournisseur",

@@ -1,1 +1,1 @@
-web: gunicorn erp.wsgi
+web: gunicorn app:app

@@ -18,17 +18,22 @@ from django.contrib import admin
 from django.urls import path, include
 
 
-admin.site.site_header="Application A3H"
+
+admin.site.site_header = "Application A3H"
+admin.site.site_title = "ERP - A3H"
+admin.site.index_title = "Tableau de bord ERP - A3H"
+from core.admin import admin_site
+from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('ventes/', include('ventes.urls')),
-    path("", include("clients.urls")),
-    path('', include("fournisseurs.urls")),
     path('', include('core.urls')),
-    path("core/", include("core.urls")),
-    path("cbc/", include("cbc.urls")),
-    path("achats/", include("achats.urls")),
+    path('ventes/', include('ventes.urls')),
+    path('clients/', include('clients.urls')),
+    path('fournisseurs/', include('fournisseurs.urls')),
+    path('cbc/', include('cbc.urls')),
+    path('achats/', include('achats.urls')),
     path('reglements/', include('reglements.urls')),
-    path("comptes/", include("comptes.urls")),
+    path('comptes/', include('comptes.urls')),
+    path('editions/', include('editions.urls')),
 ]

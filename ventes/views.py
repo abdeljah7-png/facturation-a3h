@@ -2,6 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.contrib import messages
 from .models import Facture, Produit
+from clients.models import Client
 from .pdf import generer_facture_pdf
 from .email import envoyer_facture_email
 from .xml_generator import generer_facture_xml
@@ -13,6 +14,17 @@ from django.shortcuts import get_object_or_404
 from .models import BonLivraison
 from .bl_pdf import generer_bl_pdf
 
+
+def client_info(request, client_id):
+
+    client = get_object_or_404(Client, id=client_id)
+
+    return JsonResponse({
+        "mf": client.matricule_fiscal or "",
+        "adresse": client.adresse or "",
+        "telephone": client.telephone or "",
+        "email": client.email or "",
+    })
 
 def bl_pdf(request, id):
 

@@ -9,15 +9,10 @@ from  django.contrib.auth.models import User, Group
 
 
 
-# ---  Masquer les Groupes et les utilisateurs
-#admin.site.unregister(User)
-#admin.site.unregister(Group)
 # ===============================
 # INLINE LIGNES DEVIS
 # ===============================
-# ===============================
-# INLINE LIGNES DEVIS
-# ===============================
+#@admin.register(LigneDevis)
 class LigneDevisInline(admin.TabularInline):
     model = LigneDevis
     extra = 1
@@ -33,38 +28,38 @@ class LigneDevisInline(admin.TabularInline):
 # ===============================
 # ADMIN DEVIS
 # ===============================
+
 class DevisAdmin(admin.ModelAdmin):
 
+    class Media:
+        js = (
+            "ventes/client_auto.js",
+        )
+
+    
     inlines = [LigneDevisInline]
 
     list_display = (
         "numero",
-        "date",
         "client",
-        "statut",
-        "afficher_total_ttc",
+        "date",
         "bouton_pdf",
     )
 
-    search_fields = (
+    fields = (
         "numero",
-        "client__nom",
-    )
-
-    list_filter = (
-        "statut",
         "date",
+        "client",
+        "mf_client",
+        "adresse_client",
+        "telephone_client",
+        "email_client",
+        "statut",
     )
 
-    exclude = (
-        "total_ht",
-        "total_rem",
-        "base_tva",
-        "total_tva",
-        "total_ttc",
+    readonly_fields = (
+        "numero",
     )
-
-    readonly_fields = ("numero",)
 
     # ===============================
     # NUMERO AUTO
@@ -121,8 +116,6 @@ class DevisAdmin(admin.ModelAdmin):
     # JS CLIENT AUTO
     # ===============================
 
-    class Media:
-        js = ("admin/js/client_auto.js",)
 
 admin.site.register(Devis, DevisAdmin)
 
@@ -130,6 +123,7 @@ admin.site.register(Devis, DevisAdmin)
 # ===============================
 # INLINE LIGNES FACTURE
 # ===============================
+
 class LigneFactureInline(admin.TabularInline):
     model = LigneFacture
     extra = 1
@@ -138,8 +132,14 @@ class LigneFactureInline(admin.TabularInline):
 # ===============================
 # ADMIN FACTURE
 # ===============================
-@admin.register(Facture)
+#@admin.register(Facture)
 class FactureAdmin(admin.ModelAdmin):
+
+    class Media:
+        js = (
+            "ventes/client_auto.js",
+        )
+
 
     inlines = [LigneFactureInline]
 
@@ -157,6 +157,7 @@ class FactureAdmin(admin.ModelAdmin):
 
     fields = (
         "numero",
+        "date",
         "client",
         "mf_client",
         "adresse_client",
@@ -165,12 +166,9 @@ class FactureAdmin(admin.ModelAdmin):
         "statut",
     )
 
+
     readonly_fields = (
         "numero",
-        "mf_client",
-        "adresse_client",
-        "telephone_client",
-        "email_client",
     )
 
     # ===============================
@@ -292,6 +290,7 @@ class FactureAdmin(admin.ModelAdmin):
 
         return redirect("/admin/ventes/facture/")
 
+admin.site.register(Facture, FactureAdmin)
 
 
 # ===============================
@@ -313,29 +312,37 @@ class LigneFactureAdmin(admin.ModelAdmin):
 # ===============================
 # INLINE LIGNES BON LIVRAISON
 # ===============================
+#@admin.register(BonLivraison)
 class LigneBonLivraisonInline(admin.TabularInline):
     model = LigneBonLivraison
     extra = 1
 
+    class Media:
+        js = (
+            "ventes/client_auto.js",
+        )
 
 # ===============================
 # ADMIN BON LIVRAISON
 # ===============================
 @admin.register(BonLivraison)
 class BonLivraisonAdmin(admin.ModelAdmin):
+      
 
     inlines = [LigneBonLivraisonInline]
 
     list_display = (
         "numero",
-        "client",
-        "date",
+        "mf_client",
+        "adresse_client",
+        "telephone_client",
+        "email_client",
         "total_ttc",
         "bouton_pdf",
     )
-
     fields = (
         "numero",
+        "date",
         "client",
         "mf_client",
         "adresse_client",
@@ -344,14 +351,9 @@ class BonLivraisonAdmin(admin.ModelAdmin):
         "statut",
     )
 
-    readonly_fields = (
+    readonly_fields=(
         "numero",
-        "mf_client",
-        "adresse_client",
-        "telephone_client",
-        "email_client",
-    )
-
+        )
     # ===============================
     # TOTAL DYNAMIQUE
     # ===============================
@@ -409,6 +411,8 @@ class BonLivraisonAdmin(admin.ModelAdmin):
 
         return redirect("/admin/ventes/bonlivraison/")
 
+
+#admin.site.register(BonLivraison, BonLivraisonAdmin)
 
 # ===============================
 # ADMIN LIGNE BON LIVRAISON

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Etat Bons de Livraison</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .periode {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: right;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        td.left {
+            text-align: left;
+        }
+
+        .totaux {
+            font-weight: bold;
+            background-color: #ddd;
+        }
+
+        .actions {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        button {
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        /* Impression */
+        @media print {
+            .actions {
+                display: none;
+            }
+
+            body {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="actions">
+    <form method="get">
+        Date début :
+        <input type="date" name="date_debut" value="{{ date_debut }}">
+
+        Date fin :
+        <input type="date" name="date_fin" value="{{ date_fin }}">
+
+        <button type="submit">Filtrer</button>
+        <button type="button" onclick="window.print()">Imprimer</button>
+    </form>
+</div>
+
+<h1>ETAT DES FACTURES</h1>
+
+<div class="periode">
+    Du {{ date_debut|default:"..." }} au {{ date_fin|default:"..." }}
+</div>
+
+
+
+<!-- Bouton Imprimer PDF aligné à droite -->
+<div style="text-align: right; margin-bottom: 15px;">
+    <a href="{% url 'liste_factures_pdf' %}?{% if date_debut %}date_debut={{ date_debut }}&{% endif %}{% if date_fin %}date_fin={{ date_fin }}{% endif %}" 
+       target="_blank" 
+       class="btn-imprimer">
+        Imprimer PDF
+    </a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th style="text-align:left;">Date</th>
+            <th style="text-align:left;">Numéro</th>
+            <th>Total HT</th>
+            <th>Remise</th>
+            <th>Base TVA</th>
+            <th>TVA</th>
+            <th>Total TTC</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for bon in factures %}
+        <tr>
+            <td class="left">{{ bon.date|date:"d/m/Y" }}</td>
+            <td class="left">{{ bon.numero }}</td>
+            <td>{{ bon.total_ht|floatformat:3 }}</td>
+            <td>{{ bon.total_rem|floatformat:3 }}</td>
+            <td>{{ bon.base_tva|floatformat:3 }}</td>
+            <td>{{ bon.total_tva|floatformat:3 }}</td>
+            <td>{{ bon.total_ttc|floatformat:3 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Aucun résultat</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr class="totaux">
+            <td colspan="2" class="left">TOTAL GENERAL</td>
+            <td>{{ totaux.total_ht|default:0|floatformat:3 }}</td>
+            <td>{{ totaux.total_rem|default:0|floatformat:3 }}</td>
+            <td>{{ totaux.base_tva|default:0|floatformat:3 }}</td>
+            <td>{{ totaux.total_tva|default:0|floatformat:3 }}</td>
+            <td>{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+</body>
+</html>

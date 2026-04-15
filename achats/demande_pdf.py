@@ -6,7 +6,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 import qrcode
-
+from core.utils import get_societe
 
 def generer_demande_pdf(demande):
 
@@ -44,11 +44,26 @@ def generer_demande_pdf(demande):
     # ======================
     # ENTETE SOCIETE
     # ======================
+    societe = get_societe()
+
     societe_info = [
-        [Paragraph("NOM SOCIETE", styles["Heading2"])],
-        [Paragraph("Adresse - Tunisie", styles["Normal"])],
-        [Paragraph("MF : 1234567", styles["Normal"])],
-        [Paragraph("Tel : 75 000 000", styles["Normal"])],
+        [Paragraph(societe.nom, styles["Heading2"])],
+        [Paragraph(
+            f"Adresse : {societe.adresse} - {societe.ville} - {societe.pays}",
+            styles["Normal"]
+        )],
+        [Paragraph(
+            f"MF      : {societe.matricule_fiscal}",
+            styles["Normal"]
+        )],
+        [Paragraph(
+            f"Tel     : {societe.telephone}",
+            styles["Normal"]
+        )],
+        [Paragraph(
+            f"Email   : {societe.email}",
+            styles["Normal"]
+        )],
     ]
 
     societe_table = Table(societe_info)

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.utils.timezone import now
 from clients.models import Client
 from produits.models import Produit
@@ -31,7 +32,7 @@ class Devis(models.Model):
     numero = models.CharField(max_length=30, unique=True, blank=True)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     statut = models.CharField(max_length=20, choices=STATUTS, default="brouillon")
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=timezone.now)
 
     total_ht = models.DecimalField(max_digits=12, decimal_places=3, default=0)
     total_rem = models.DecimalField(max_digits=12, decimal_places=3, default=0)
@@ -132,7 +133,7 @@ def generer_numero_bonlivraison():
 class BonLivraison(models.Model):
 
     numero = models.CharField(max_length=20, unique=True)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=timezone.now)
 
     client = models.ForeignKey("clients.Client", on_delete=models.CASCADE)
 
@@ -140,7 +141,12 @@ class BonLivraison(models.Model):
     adresse_client = models.CharField(max_length=200, blank=True)
     telephone_client = models.CharField(max_length=30, blank=True)
     email_client = models.CharField(max_length=100, blank=True)
-
+    facture = models.ForeignKey(
+        "Facture",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     statut = models.CharField(
         max_length=20,
         choices=[
@@ -276,7 +282,7 @@ class Facture(models.Model):
     numero = models.CharField(max_length=30, unique=True, blank=True)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     statut = models.CharField(max_length=20, choices=STATUTS, default="brouillon")
-    date = models.DateField(auto_now_add=True, editable=False)
+    date = models.DateField(default=timezone.now)
 
     total_ht = models.DecimalField(max_digits=12, decimal_places=3, default=0)
     total_rem = models.DecimalField(max_digits=12, decimal_places=3, default=0)

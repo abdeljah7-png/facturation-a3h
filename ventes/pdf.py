@@ -9,7 +9,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 import qrcode
-
+from core.utils import get_societe
 
 def generer_facture_pdf(facture):
 
@@ -55,13 +55,26 @@ def generer_facture_pdf(facture):
     # ENTETE SOCIETE
     # ======================
 
-    societe_info = [
+    societe = get_societe()
 
-        [Paragraph("NOM OU RAISON SOCIALE DE LA SOCIETE", styles["Heading2"])],
-        [Paragraph("Adresse : Société - Ville - Tunisie", styles["Normal"])],
-        [Paragraph("MF      : 1234567/A/B/C/000", styles["Normal"])],
-        [Paragraph("Tel     : 75 000 000 ", styles["Normal"])],
-        [Paragraph("Email   : contact@societe.tn", styles["Normal"])],
+    societe_info = [
+        [Paragraph(societe.nom, styles["Heading2"])],
+        [Paragraph(
+            f"Adresse : {societe.adresse} - {societe.ville} - {societe.pays}",
+            styles["Normal"]
+        )],
+        [Paragraph(
+            f"MF      : {societe.matricule_fiscal}",
+            styles["Normal"]
+        )],
+        [Paragraph(
+            f"Tel     : {societe.telephone}",
+            styles["Normal"]
+        )],
+        [Paragraph(
+            f"Email   : {societe.email}",
+            styles["Normal"]
+        )],
     ]
 
     elements.append(Spacer(1,20))
