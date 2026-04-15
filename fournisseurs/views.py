@@ -139,7 +139,14 @@ def releve_fournisseur_pdf(request, fournisseur_id):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="releve_fournisseur_{fournisseur.id}.pdf"'
 
-    doc = SimpleDocTemplate(response, pagesize=A4)
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        topMargin=0*cm,   # 👈 plus d’espace pour header société
+        bottomMargin=2*cm,
+        leftMargin=2*cm,
+        rightMargin=2*cm
+    )
     elements = []
     styles = getSampleStyleSheet()
 
@@ -160,7 +167,7 @@ def releve_fournisseur_pdf(request, fournisseur_id):
 
     table_societe = Table(societe_info, colWidths=[500])
 
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 6))
     elements.append(table_societe)
 
     elements.append(Paragraph(f"<b>Relevé Fournisseur</b>", styles['Title']))
