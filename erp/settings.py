@@ -6,10 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ----------------------
 # SECURITY
 # ----------------------
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-erp-default-key-123456'
-)
+SECRET_KEY = 'django-insecure-erp-2026-fix-key-123456'
 
 DEBUG = False
 
@@ -116,13 +113,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
 # WhiteNoise (Django 5 compatible)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ----------------------
 # DEFAULT AUTO FIELD
