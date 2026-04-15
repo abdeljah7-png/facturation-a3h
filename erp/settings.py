@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ----------------------
 # SECURITY
 # ----------------------
-SECRET_KEY = 'django-insecure-erp-2026-fix-key-123456'
+SECRET_KEY = '+n#^73%_1y3mjn+#kpo--84(5-i%2k7wfr$(+=80h3af*bj2r8'
 
 DEBUG = False
 
