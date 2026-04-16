@@ -139,7 +139,15 @@ def releve_fournisseur_pdf(request, fournisseur_id):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="releve_fournisseur_{fournisseur.id}.pdf"'
 
-    doc = SimpleDocTemplate(response, pagesize=A4)
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        topMargin=0*cm,   # 👈 plus d’espace pour header société
+        bottomMargin=2*cm,
+        leftMargin=2*cm,
+        rightMargin=2*cm
+    )
+
     elements = []
     styles = getSampleStyleSheet()
 
