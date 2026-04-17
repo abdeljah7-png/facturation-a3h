@@ -3,8 +3,6 @@ from django.shortcuts import redirect
 from .models import EditionMenu
 
 
-
-
 class EditionMenuAdmin(admin.ModelAdmin):
 
     # 🔁 Redirection vers dashboard
@@ -25,7 +23,3 @@ class EditionMenuAdmin(admin.ModelAdmin):
 
 
 admin.site.register(EditionMenu, EditionMenuAdmin)
-
-admin.site.site_header = "Application A3H"
-admin.site.site_title = "ERP - A3H"
-admin.site.index_title = "Tableau de bord ERP - A3H"

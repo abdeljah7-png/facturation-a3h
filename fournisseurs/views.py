@@ -147,6 +147,10 @@ def releve_fournisseur_pdf(request, fournisseur_id):
         leftMargin=2*cm,
         rightMargin=2*cm
     )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 88c6ea8902a1dccb13aac8a4c275c0bd77730718
     elements = []
     styles = getSampleStyleSheet()
 
