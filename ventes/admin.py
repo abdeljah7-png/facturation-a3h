@@ -139,6 +139,7 @@ class FactureAdmin(admin.ModelAdmin):
             "ventes/js/client_auto.js",
         )
 
+
     inlines = [LigneFactureInline]
 
     list_display = (
