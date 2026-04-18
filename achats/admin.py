@@ -60,6 +60,7 @@ class DemandeAdmin(admin.ModelAdmin):
     )
 
     list_filter = (
+        "numero",
         "statut",
         "date",
     )
@@ -72,7 +73,6 @@ class DemandeAdmin(admin.ModelAdmin):
         "total_ttc",
     )
 
-    readonly_fields = ("numero",)
 
     # ===============================
     # TOTAL TTC
@@ -188,7 +188,6 @@ class BonReceptionAdmin(admin.ModelAdmin):
         "total_ttc",
     )
 
-    readonly_fields = ("numero",)
 
     # ===============================
     # TOTAL TTC
@@ -281,9 +280,6 @@ class FactureAchatAdmin(admin.ModelAdmin):
         "statut",
     )
 
-    readonly_fields = (
-        "numero",
-    )
 
     # ===============================
     # STATUT COULEUR
