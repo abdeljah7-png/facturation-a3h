@@ -26,6 +26,19 @@ def client_info(request, client_id):
         "email": client.email or "",
     })
 
+
+
+def produit_info(request, produit_id):
+
+    produit = get_object_or_404(Produit, id=produit_id)
+
+    data = {
+        "prix_ht": float(produit.prix_ht),
+        "taux_tva": float(produit.taux_tva),
+    }
+
+    return JsonResponse(data)
+
 def bl_pdf(request, id):
 
     bl = get_object_or_404(BonLivraison, id=id)
