@@ -52,8 +52,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
 def client_info(request, client_id):
-    client = get_object_or_404(Client, id=client_id)
 
+    client = Client.objects.get(id=Client_id)
     return JsonResponse({
         "mf": client.matricule_fiscal,
         "adresse": client.adresse,

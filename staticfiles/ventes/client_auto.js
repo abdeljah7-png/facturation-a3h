@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const clientId = this.value;
         if (!clientId) return;
 
-        fetch("/client-info/" + clientId + "/")
+        fetch("/ventes/client-info/" + clientId + "/")
             .then(r => r.json())
             .then(data => {
 
