@@ -1,36 +1,33 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Sélection du client dans le formulaire Devis
-    const clientSelect = document.querySelector('select[name="client"]');
 
-    if (!clientSelect) {
-        console.log("Select client non trouvé dans l'admin");
-        return;
-    }
+    const clientSelect = document.getElementById("id_client");
+
+    if (!clientSelect) return;
 
     clientSelect.addEventListener("change", function () {
+
         const clientId = this.value;
         if (!clientId) return;
 
         fetch("/client-info/" + clientId + "/")
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                console.log("Données client reçues :", data);
 
-                // Champs client dans le même formulaire
-                const form = clientSelect.closest('form');
+                const mf = document.getElementById("id_mf_client");
+                if (mf) mf.value = data.mf;
 
-                const mapping = {
-                    'matricule_fiscal': data.matricule_fiscal,
-                    'adresse': data.adresse,
-                    'telephone': data.telephone,
-                    'email': data.email
-                };
+                const adr = document.getElementById("id_adresse_client");
+                if (adr) adr.value = data.adresse;
 
-                Object.keys(mapping).forEach(function(fieldName) {
-                    const input = form.querySelector(`input[name="${fieldName}"]`);
-                    if (input) input.value = mapping[fieldName] || '';
-                });
+                const tel = document.getElementById("id_telephone_client");
+                if (tel) tel.value = data.telephone;
+
+                const email = document.getElementById("id_email_client");
+                if (email) email.value = data.email;
+
             })
-            .catch(error => console.error("Erreur fetch client :", error));
+            .catch(err => console.error("Erreur client info:", err));
+
     });
+
 });

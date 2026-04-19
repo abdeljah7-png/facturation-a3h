@@ -7,18 +7,17 @@ document.addEventListener("DOMContentLoaded", function () {
     clientSelect.addEventListener("change", function () {
 
         const clientId = this.value;
-
         if (!clientId) return;
 
-       fetch("/client-info/" + clientId + "/")
-            .then(response => response.json())
+        fetch("/client-info/" + clientId + "/")
+            .then(r => r.json())
             .then(data => {
 
                 const mf = document.getElementById("id_mf_client");
                 if (mf) mf.value = data.mf;
 
-                const adresse = document.getElementById("id_adresse_client");
-                if (adresse) adresse.value = data.adresse;
+                const adr = document.getElementById("id_adresse_client");
+                if (adr) adr.value = data.adresse;
 
                 const tel = document.getElementById("id_telephone_client");
                 if (tel) tel.value = data.telephone;
@@ -27,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (email) email.value = data.email;
 
             })
-            .catch(error => console.error("Erreur fetch client :", error));
+            .catch(err => console.error("Erreur client info:", err));
 
     });
 
