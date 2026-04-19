@@ -43,6 +43,7 @@ class DevisAdmin(admin.ModelAdmin):
     list_display = (
         "numero",
         "client",
+        "statut",
         "date",
         "bouton_pdf",
     )
@@ -148,6 +149,7 @@ class FactureAdmin(admin.ModelAdmin):
     list_display = (
         "numero",
         "client",
+        "statut",
         "date",
         "total_ttc",
         "statut_colore",
@@ -337,6 +339,7 @@ class BonLivraisonAdmin(admin.ModelAdmin):
     list_display = (
         "numero",
         "mf_client",
+        "statut",
         "adresse_client",
         "telephone_client",
         "email_client",
