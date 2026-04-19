@@ -48,16 +48,18 @@ from .models import Client
 # ------------------- UTILITAIRE -------------------
 
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+
 def client_info(request, client_id):
-    client = Client.objects.get(id=Client_id)
+    client = get_object_or_404(Client, id=client_id)
 
     return JsonResponse({
-        "mf": Client.matricule_fiscal,   # ✅ CORRIGÉ ICI
-        "adresse": Client.adresse,
-        "telephone": Client.telephone,
-        "email": Client.email,
+        "mf": client.matricule_fiscal,
+        "adresse": client.adresse,
+        "telephone": client.telephone,
+        "email": client.email,
     })
-
 
 
 
