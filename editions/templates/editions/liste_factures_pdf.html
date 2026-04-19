@@ -11,7 +11,6 @@
             color: #333;
         }
 
-        /* 🏢 HEADER ERP */
         .header {
             text-align: center;
             margin-bottom: 15px;
@@ -90,7 +89,6 @@
             background-color: #163b5a;
         }
 
-        /* Impression */
         @media print {
             .actions { display: none; }
             body { margin: 10px; }
@@ -107,12 +105,10 @@
 
 <body>
 
-<!-- 🔘 ACTIONS -->
 <div class="actions">
     <button onclick="window.print()">Imprimer / Aperçu</button>
 </div>
 
-<!-- 🏢 ENTETE SOCIETE -->
 <div class="header">
 
     <div class="societe">
@@ -126,12 +122,10 @@
 
 </div>
 
-<!-- 📅 PERIODE -->
 <div class="periode">
     Du {{ date_debut|default:"..." }} au {{ date_fin|default:"..." }}
 </div>
 
-<!-- 📊 TABLE -->
 <table>
     <thead>
         <tr>
@@ -142,6 +136,7 @@
             <th>Remise</th>
             <th>Base TVA</th>
             <th>TVA</th>
+            <th>Timb.Fis</th>
             <th>Total TTC</th>
         </tr>
     </thead>
@@ -156,11 +151,15 @@
             <td class="right">{{ facture.total_rem|floatformat:3 }}</td>
             <td class="right">{{ facture.base_tva|floatformat:3 }}</td>
             <td class="right">{{ facture.total_tva|floatformat:3 }}</td>
+
+            <!-- 🆕 TIMBRE FISCAL FIXE -->
+            <td class="right">{{ 1|floatformat:3 }}</td>
+
             <td class="right">{{ facture.total_ttc|floatformat:3 }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="8" class="left">Aucun résultat</td>
+            <td colspan="9" class="left">Aucun résultat</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -168,16 +167,21 @@
     <tfoot>
         <tr>
             <td colspan="3" class="left">TOTAL GENERAL</td>
+
             <td class="right">{{ totaux.total_ht|default:0|floatformat:3 }}</td>
             <td class="right">{{ totaux.total_rem|default:0|floatformat:3 }}</td>
             <td class="right">{{ totaux.base_tva|default:0|floatformat:3 }}</td>
             <td class="right">{{ totaux.total_tva|default:0|floatformat:3 }}</td>
+
+            <!-- colonne timbre -->
+            <td class="right">{{ factures|length|default:0|floatformat:3 }}</td>
+
             <td class="right">{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
         </tr>
     </tfoot>
+
 </table>
 
-<!-- 📄 FOOTER -->
 <footer>
     Date impression : {{ today|date:"d/m/Y H:i" }}
 </footer>

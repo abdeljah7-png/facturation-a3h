@@ -194,6 +194,7 @@ def generer_facture_pdf(facture):
         ["Total Remise", f"{totaux['total_rem']:.3f} TND"],
         ["Base TVA", f"{totaux['base_tva']:.3f} TND"],
         ["Total TVA", f"{totaux['total_tva']:.3f} TND"],
+        ["Timbre.fiscale", f"{1:.3f} TND"],
         ["Total TTC", f"{totaux['total_ttc']:.3f} TND"],
     ]
 
@@ -201,7 +202,7 @@ def generer_facture_pdf(facture):
 
     total_table.setStyle(TableStyle([
         ("GRID", (0, 0), (-1, -1), 0.8, colors.black),
-        ("BACKGROUND", (0, 4), (-1, 4), colors.lightgrey),
+        ("BACKGROUND", (0, 5), (-1, 5), colors.lightgrey),
         ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
     ]))
 
@@ -211,20 +212,6 @@ def generer_facture_pdf(facture):
     # ======================
     # CONDITIONS
     # ======================
-    comment_data = [
-        ["On ajoute un commentaire telque ; mode de livraison mode de paiement etc ..."],
-    ]
-
-    comment_table = Table(comment_data, colWidths=[20*cm, 40*cm])
-
-    comment_table.setStyle(TableStyle([
-        ("GRID", (0, 0), (-1, -1), 0.3, colors.grey),
-        ("BACKGROUND", (0, 0), (0, -1), colors.whitesmoke),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-    ]))
-
-    elements.append(comment_table)
-    elements.append(Spacer(1, 25))
 
     # ======================
     # GENERATION PDF

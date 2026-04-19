@@ -350,7 +350,7 @@ class FactureAchat(models.Model):
             total_rem += rem
             base_tva += base
             total_tva += tva
-            total_ttc += base + tva
+            total_ttc += base + tva 
 
         return {
             "total_ht": total_ht,
@@ -379,7 +379,7 @@ class FactureAchat(models.Model):
             total_tva += montant_tva
             base_tva += montant_base_tva
 
-        total_ttc = base_tva + total_tva
+        total_ttc = base_tva + total_tva + 1
 
         # mise à jour des champs
         self.total_ht = total_ht

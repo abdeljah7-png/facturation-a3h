@@ -9,24 +9,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const clientId = this.value;
         if (!clientId) return;
 
-        fetch("/ventes/client-info/" + clientId + "/")
-            .then(r => r.json())
+        fetch(`/clients/client-info/${clientId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Erreur HTTP: " + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
 
-                const mf = document.getElementById("id_mf_client");
-                if (mf) mf.value = data.mf;
+                console.log("Client data:", data);
 
-                const adr = document.getElementById("id_adresse_client");
-                if (adr) adr.value = data.adresse;
+                const setValue = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = value || "";
+                };
 
-                const tel = document.getElementById("id_telephone_client");
-                if (tel) tel.value = data.telephone;
+                // Infos client
+                setValue("id_nom_client", data.nom);
+                setValue("id_adresse_client", data.adresse);
+                setValue("id_telephone_client", data.telephone);
+                setValue("id_email_client", data.email);
 
-                const email = document.getElementById("id_email_client");
-                if (email) email.value = data.email;
+                // 🔥 matricule fiscale (IMPORTANT)
+                setValue("id_mf_client", data.matricule_fiscal);
 
             })
-            .catch(err => console.error("Erreur client info:", err));
+            .catch(error => {
+                console.error("Erreur client fetch:", error);
+            });
 
     });
 

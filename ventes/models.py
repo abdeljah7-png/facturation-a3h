@@ -316,7 +316,7 @@ class Facture(models.Model):
             total_tva += montant_tva
             base_tva += montant_base_tva
 
-        total_ttc = base_tva + total_tva
+        total_ttc = base_tva + total_tva + 1
 
         # mise à jour des champs
         self.total_ht = total_ht

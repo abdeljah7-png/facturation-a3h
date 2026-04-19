@@ -79,9 +79,12 @@
         <tr>
             <th>Date</th>
             <th>Numéro</th>
-            <th>Fournisseur</th>
+            <th>Client</th>
             <th>Total HT</th>
+            <th>Remise</th>
+            <th>Base TVA</th>
             <th>TVA</th>
+            <th>Timb.Fis</th>
             <th>Total TTC</th>
         </tr>
     </thead>
@@ -93,22 +96,35 @@
             <td class="left">{{ facture.numero }}</td>
             <td class="left">{{ facture.fournisseur }}</td>
             <td class="right">{{ facture.total_ht|floatformat:3 }}</td>
+            <td class="right">{{ facture.total_rem|floatformat:3 }}</td>
+            <td class="right">{{ facture.base_tva|floatformat:3 }}</td>
             <td class="right">{{ facture.total_tva|floatformat:3 }}</td>
+
+            <!-- 🆕 TIMBRE FISCAL FIXE -->
+            <td class="right">{{ 1|floatformat:3 }}</td>
+
             <td class="right">{{ facture.total_ttc|floatformat:3 }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="6">Aucun résultat</td>
+            <td colspan="9" class="left">Aucun résultat</td>
         </tr>
         {% endfor %}
     </tbody>
 
     <tfoot>
         <tr>
-            <td colspan="3">TOTAL</td>
-            <td>{{ totaux.total_ht|default:0|floatformat:3 }}</td>
-            <td>{{ totaux.total_tva|default:0|floatformat:3 }}</td>
-            <td>{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
+            <td colspan="3" class="left">TOTAL GENERAL</td>
+
+            <td class="right">{{ totaux.total_ht|default:0|floatformat:3 }}</td>
+            <td class="right">{{ totaux.total_rem|default:0|floatformat:3 }}</td>
+            <td class="right">{{ totaux.base_tva|default:0|floatformat:3 }}</td>
+            <td class="right">{{ totaux.total_tva|default:0|floatformat:3 }}</td>
+
+            <!-- colonne timbre -->
+            <td class="right">{{ factures|length|default:0|floatformat:3 }}</td>
+
+            <td class="right">{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
         </tr>
     </tfoot>
 </table>

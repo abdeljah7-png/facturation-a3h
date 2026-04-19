@@ -53,15 +53,17 @@ from django.shortcuts import get_object_or_404
 
 def client_info(request, client_id):
     client = Client.objects.get(id=client_id)
+
     return JsonResponse({
-        "id": client.id,
         "nom": client.nom,
         "adresse": client.adresse,
         "telephone": client.telephone,
         "email": client.email,
-        "solde_initial": float(client.solde_initial),  # 🔥 important
-        "date_creation": client.date_creation.strftime("%Y-%m-%d %H:%M:%S")  # 🔥 important
+        "matricule_fiscal": client.matricule_fiscal,
     })
+
+
+
 
 def calcul_releve_client(client, date_debut=None, date_fin=None):
     bons = BonLivraison.objects.filter(client=client)

@@ -108,6 +108,10 @@
             <th>Remise</th>
             <th>Base TVA</th>
             <th>TVA</th>
+
+            <!-- 🆕 TIMBRE -->
+            <th>Timbre</th>
+
             <th>Total TTC</th>
         </tr>
     </thead>
@@ -121,11 +125,15 @@
             <td>{{ bon.total_rem|floatformat:3 }}</td>
             <td>{{ bon.base_tva|floatformat:3 }}</td>
             <td>{{ bon.total_tva|floatformat:3 }}</td>
+
+            <!-- 🆕 TIMBRE FIXE -->
+            <td>1.000</td>
+
             <td>{{ bon.total_ttc|floatformat:3 }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="7">Aucun résultat</td>
+            <td colspan="8">Aucun résultat</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -133,10 +141,15 @@
     <tfoot>
         <tr class="totaux">
             <td colspan="2" class="left">TOTAL GENERAL</td>
+
             <td>{{ totaux.total_ht|default:0|floatformat:3 }}</td>
             <td>{{ totaux.total_rem|default:0|floatformat:3 }}</td>
             <td>{{ totaux.base_tva|default:0|floatformat:3 }}</td>
             <td>{{ totaux.total_tva|default:0|floatformat:3 }}</td>
+
+            <!-- 🆕 TOTAL TIMBRE -->
+            <td>{{ factures|length|default:0|floatformat:3 }}</td>
+
             <td>{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
         </tr>
     </tfoot>
