@@ -57,6 +57,10 @@ class DevisAdmin(admin.ModelAdmin):
         "email_client",
         "statut",
     )
+    search_fields = (
+        "numero",
+        "client__nom",
+    )
 
     readonly_fields = (
         "numero",
@@ -167,7 +171,10 @@ class FactureAdmin(admin.ModelAdmin):
         "email_client",
         "statut",
     )
-
+    search_fields = (
+        "numero",
+        "client__nom",
+    )
 
     readonly_fields = (
         "numero",
@@ -352,6 +359,10 @@ class BonLivraisonAdmin(admin.ModelAdmin):
         "telephone_client",
         "email_client",
         "statut",
+    )
+    search_fields = (
+        "numero",
+        "client__nom",
     )
 
     readonly_fields=(
