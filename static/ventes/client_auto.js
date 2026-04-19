@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!clientId) return;
 
-       fetch("/client-info/" + clientId + "/")
+        fetch("/client-info/" + clientId + "/")
             .then(response => response.json())
             .then(data => {
 

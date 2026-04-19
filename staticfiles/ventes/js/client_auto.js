@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const clientId = this.value;
         if (!clientId) return;
 
-        fetch("/clients/" + clientId + "/")
+        fetch("/client-info/" + clientId + "/")
             .then(response => response.json())
             .then(data => {
                 console.log("Données client reçues :", data);
