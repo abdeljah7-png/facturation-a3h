@@ -48,7 +48,7 @@ from .models import Client
 # ------------------- UTILITAIRE -------------------
 
 
-def client_info(request, Fournisseur_id):
+def client_info(request, client_id):
     client = Client.objects.get(id=Client_id)
 
     return JsonResponse({
