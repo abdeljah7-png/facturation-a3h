@@ -113,6 +113,7 @@
             <th>Timbre</th>
 
             <th>Total TTC</th>
+            <th>R.Source</th>
         </tr>
     </thead>
 
@@ -130,6 +131,7 @@
             <td>1.000</td>
 
             <td>{{ bon.total_ttc|floatformat:3 }}</td>
+            <td class="right">{{ bon.r_source|floatformat:3 }}</td>
         </tr>
         {% empty %}
         <tr>
@@ -151,6 +153,7 @@
             <td>{{ factures|length|default:0|floatformat:3 }}</td>
 
             <td>{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
+            <td class="right">{{ total_r_source|floatformat:3 }}</td>
         </tr>
     </tfoot>
 </table>

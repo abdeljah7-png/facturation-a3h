@@ -11,7 +11,14 @@ class Produit(models.Model):
     )
     prix_ht = models.DecimalField(max_digits=10, decimal_places=3)
     taux_tva = models.DecimalField(max_digits=4, decimal_places=2, default=19)
-    stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stock_initial = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    seuil = models.IntegerField(default=0)
+    date_creation = models.DateField()
 
     def __str__(self):
         return self.designation

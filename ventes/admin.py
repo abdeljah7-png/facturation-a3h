@@ -6,7 +6,11 @@ from django.db.models import Max
 from .models import BonLivraison, LigneBonLivraison
 from .models import Facture, LigneFacture, Devis, LigneDevis
 from  django.contrib.auth.models import User, Group
-
+from django.contrib import admin
+from django.utils.html import format_html
+from produits.models import Produit
+from ventes.models import LigneBonLivraison
+from achats.models import LigneBonReception
 
 
 # ===============================
@@ -329,7 +333,18 @@ class LigneBonLivraisonInline(admin.TabularInline):
     class Media:
         js = (
             "ventes/client_auto.js",
+            "ventes/stock.js",
         )
+
+    
+    fields = ("produit", "quantite", "prix_ht", "stock_affiche")
+    readonly_fields = ("stock_affiche",)
+
+    def stock_affiche(self, obj):
+        return "-"   # valeur par défaut (important)
+
+    stock_affiche.short_description = "Stock actuel"
+
 
 # ===============================
 # ADMIN BON LIVRAISON
@@ -431,13 +446,122 @@ class BonLivraisonAdmin(admin.ModelAdmin):
 # ===============================
 # ADMIN LIGNE BON LIVRAISON
 # ===============================
+
 @admin.register(LigneBonLivraison)
 class LigneBonLivraisonAdmin(admin.ModelAdmin):
 
     list_display = (
         "produit",
-        "taux_rem",
         "quantite",
         "prix_ht",
         "taux_tva",
     )
+    
+    
+from django.contrib import admin
+from django.urls import reverse, path
+from django.utils.html import format_html
+from django.shortcuts import redirect
+from django.contrib import messages
+
+from .models import AvoirClient, LigneAvoirClient
+
+
+# ==========================
+# INLINE
+# ==========================
+class LigneAvoirClientInline(admin.TabularInline):
+    model = LigneAvoirClient
+    extra = 1
+
+    class Media:
+        js = (
+            "ventes/client_auto.js",
+            "ventes/stock.js",
+        )
+
+    fields = ("produit", "quantite", "prix_ht", "taux_rem", "taux_tva")
+
+
+# ==========================
+# ADMIN AVOIR CLIENT
+# ==========================
+@admin.register(AvoirClient)
+class AvoirClientAdmin(admin.ModelAdmin):
+
+    inlines = [LigneAvoirClientInline]
+
+    readonly_fields = ("numero", "total_ttc")
+
+    list_display = (
+        "numero",
+        "client",
+        "total_ttc_display",
+        "bouton_pdf",
+    )
+
+    fields = (
+        "numero",
+        "date",
+        "client",
+        "mf_client",
+        "adresse_client",
+        "telephone_client",
+        "email_client",
+        "total_ttc",
+    )
+
+    search_fields = ("numero", "client__nom")
+
+    # ==========================
+    # SAVE RELATED (IMPORTANT)
+    # ==========================
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        form.instance.calculer_totaux()
+
+    # ==========================
+    # DISPLAY TOTAL
+    # ==========================
+    def total_ttc_display(self, obj):
+        return f"{obj.total_ttc:.3f} TND"
+
+    total_ttc_display.short_description = "Total TTC"
+
+    # ==========================
+    # PDF BUTTON
+    # ==========================
+
+
+
+    readonly_fields = ("numero", "total_ttc")
+
+    # ==========================
+    # PDF BUTTON
+    # ==========================
+    def bouton_pdf(self, obj):
+
+        from django.urls import reverse
+        from django.utils.html import format_html
+
+        if not obj.id:
+            return "-"
+
+        url = reverse("avoir_pdf", args=[obj.id])
+
+        return format_html(
+            '<a class="button" href="{}" target="_blank" '
+            'style="background:#dc3545;color:white;padding:4px 8px;border-radius:4px;">PDF</a>',
+            url
+        )
+
+    bouton_pdf.short_description = "PDF"
+
+# ==========================
+# ADMIN LIGNES
+# ==========================
+@admin.register(LigneAvoirClient)
+class LigneAvoirClientAdmin(admin.ModelAdmin):
+
+    list_display = ("produit", "quantite", "prix_ht")
+

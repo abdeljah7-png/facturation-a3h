@@ -1,4 +1,4 @@
-
+from .views import avoir_pdf
 from django.urls import path
 from .views import facture_pdf, facture_xml, envoyer_facture
 from .views import produit_info
@@ -13,4 +13,5 @@ urlpatterns = [
     path("facture/<int:facture_id>/xml/", views.facture_xml, name="facture_xml"),
     path("devis/<int:id>/pdf/", views.devis_pdf, name="devis_pdf"),
     path("bl/<int:id>/pdf/", views.bl_pdf, name="bl_pdf"),
+    path("avoir/<int:pk>/pdf/", avoir_pdf, name="avoir_pdf"),
 ]

@@ -27,5 +27,3 @@ class FournisseurAdmin(admin.ModelAdmin):
         "telephone",
         "email",
     )
-    list_filter = ("date_creation",)
-    ordering = ("nom",)

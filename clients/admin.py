@@ -18,7 +18,6 @@ class ClientAdmin(admin.ModelAdmin):
         "nom",
         "matricule_fiscal",
         "telephone",
-        "email",
         "date_creation",
         'voir_releve',
     )
@@ -28,6 +27,4 @@ class ClientAdmin(admin.ModelAdmin):
         "telephone",
         "email",
     )
-    list_filter = ("date_creation",)
-    ordering = ("nom",)
 

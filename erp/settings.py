@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
 
+
+LOGIN_URL = '/'
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ----------------------

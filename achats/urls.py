@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import avoir_fournisseur_pdf
 
 urlpatterns = [
 
@@ -21,8 +22,12 @@ urlpatterns = [
     path("produit-info/<int:produit_id>/",
          views.produit_info,
          name="produit_info"),
+    path(
+        "avoir-fournisseur/<int:pk>/pdf/",
+        avoir_fournisseur_pdf,
+        name="avoir_fournisseur_pdf"
+    ),
 
 ]
-
 
     

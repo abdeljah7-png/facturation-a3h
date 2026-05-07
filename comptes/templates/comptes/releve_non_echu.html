@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<form method="get" style="margin-bottom:15px;">
+
+    <label>Date début :</label>
+    <input type="date" name="date_debut" value="{{ date_debut|default:'' }}">
+
+    <label>Date fin :</label>
+    <input type="date" name="date_fin" value="{{ date_fin|default:'' }}">
+
+    <button type="submit"
+            style="padding:6px 12px; background:#007bff; color:white; border:none; border-radius:4px;">
+        🔍 Filtrer
+    </button>
+
+</form>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Relevé non échu</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            margin: 0;
+        }
+
+        .societe {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .btn-pdf {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        td {
+            text-align: right;
+        }
+
+        td:first-child,
+        td:nth-child(2),
+        td:nth-child(3) {
+            text-align: left;
+        }
+
+        tfoot {
+            font-weight: bold;
+            background: #eee;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 🔷 ENTETE SOCIETE -->
+    <div class="header">
+        <div class="societe">
+            <strong>{{ societe.nom }}</strong><br>
+            {{ societe.adresse }}<br>
+            M.F : {{ societe.matricule_fiscal|upper }}<br>
+            Tél: {{ societe.telephone }} - Email: {{ societe.email }}
+        </div>
+
+        <h2>{{ titre }}</h2>
+        <h3>Compte : {{ compte.libelle }}</h3>
+    </div>
+
+    <!-- 🔷 BOUTON PDF -->
+    
+    <div style="text-align:right; margin-bottom:15px;">
+        <a href="{% url 'releve_non_echu_pdf' compte.id %}?date_debut={{ date_debut|default:'' }}&date_fin={{ date_fin|default:'' }}"
+        target="_blank"
+        class="btn-pdf">
+            📄 Télécharger PDF
+        </a>
+    </div>
+
+    <!-- 🔷 TABLE -->
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Mode</th>
+                <th>Référence</th>
+                <th>Échéance</th>
+                <th>Débit</th>
+                <th>Crédit</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for l in lignes %}
+            <tr>
+                <td>{{ l.nom }}</td>
+                <td>{{ l.mode }}</td>
+                <td>{{ l.reference }}</td>
+                <td>{{ l.echeance|date:"d/m/Y" }}</td>
+                <td>{{ l.debit|floatformat:3 }}</td>
+                <td>{{ l.credit|floatformat:3 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <td colspan="4">Totaux</td>
+                <td>{{ total_debit|floatformat:3 }}</td>
+                <td>{{ total_credit|floatformat:3 }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+</body>
+</html>

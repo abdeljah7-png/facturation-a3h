@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des stocks</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        .stock-ok {
+            color: green;
+            font-weight: bold;
+        }
+
+        .stock-low {
+            color: red;
+            font-weight: bold;
+        }
+
+        .date-ref {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        @media print {
+            .top-bar {
+                display: none;
+            }
+
+            body {
+                background: white;
+            }
+
+            table {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>📦 Liste des stocks</h2>
+
+<div class="top-bar">
+    <a href="#" onclick="window.print()" class="btn">🖨 Imprimer</a>
+</div>
+
+<table>
+<thead>
+    <tr>
+        <th>Produit</th>
+        <th>Date référence</th>
+        <th>Stock initial</th>
+        <th>Achats</th>
+        <th>Ventes</th>
+        <th>Retour Client</th>
+        <th>Retour Fournisseur</th>
+        <th>Stock réel</th>
+    </tr>
+</thead>
+
+    <tbody>
+        {% for item in data %}
+        <tr>
+            <td>{{ item.produit.designation }}</td>
+
+            <td class="date-ref">
+                {{ item.date_ref }}
+            </td>
+
+            <td>{{ item.stock_initial }}</td>
+
+            <td>{{ item.achats }}</td>
+
+            <td>{{ item.ventes }}</td>
+
+            <!-- ✅ AVOIR CLIENT -->
+            <td style="color:green; font-weight:bold;">
+                + {{ item.avoir_client }}
+            </td>
+
+            <!-- ✅ AVOIR FOURNISSEUR -->
+            <td style="color:red; font-weight:bold;">
+                - {{ item.avoir_fournisseur }}
+            </td>
+
+            <!-- ✅ STOCK FINAL -->
+            <td>
+                {% if item.stock_reel < 0 %}
+                    <span class="stock-low">{{ item.stock_reel }}</span>
+                {% else %}
+                    <span class="stock-ok">{{ item.stock_reel }}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

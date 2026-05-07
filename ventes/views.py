@@ -13,6 +13,9 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import get_object_or_404
 from .models import BonLivraison
 from .bl_pdf import generer_bl_pdf
+from .avoir_pdf import generer_avoir_pdf
+from .models import AvoirClient
+from .avoir_pdf import generer_avoir_pdf
 
 
 def client_info(request, client_id):
@@ -44,6 +47,12 @@ def bl_pdf(request, id):
     bl = get_object_or_404(BonLivraison, id=id)
 
     return generer_bl_pdf(bl)
+
+def avoir_pdf(request, pk):
+
+    avoir = get_object_or_404(AvoirClient, pk=pk)
+
+    return generer_avoir_pdf(avoir)
 
 
 def facture_xml(request, facture_id):
@@ -88,3 +97,6 @@ def devis_pdf(request, id):
     devis = get_object_or_404(Devis, id=id)
 
     return generer_devis_pdf(devis)
+
+
+

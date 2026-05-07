@@ -28,6 +28,7 @@ class ReglementClient(models.Model):
     )
 
     mode_paiement = models.CharField(max_length=50, blank=True, choices=mode_choix)
+    echeance = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
 
@@ -83,6 +84,7 @@ class ReglementFournisseur(models.Model):
     )
 
     mode_paiement = models.CharField(max_length=50, blank=True, choices=mode_choix)
+    echeance = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
 

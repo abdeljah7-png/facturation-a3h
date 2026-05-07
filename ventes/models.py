@@ -249,14 +249,138 @@ class LigneBonLivraison(models.Model):
         bon.calculer_totaux()
         bon.save(update_fields=["total_ht", "total_rem", "base_tva", "total_tva", "total_ttc"])
 
+#---------------------------- Bon d'avoir client
+
+from django.db import models
+from django.utils.timezone import now
 
 
+def generer_numero_avoirclient():
+    annee = now().year
+    prefix = f"AVOIR-{annee}-"
 
-#----------------------------
+    derniere = AvoirClient.objects.filter(numero__startswith=prefix).order_by("numero").last()
+
+    if derniere:
+        num = int(derniere.numero.split("-")[-1]) + 1
+    else:
+        num = 1
+
+    return f"{prefix}{num:05d}"
 
 
+class AvoirClient(models.Model):
+
+    numero = models.CharField(max_length=20, unique=True, blank=True)
+    date = models.DateField(default=now)
+
+    client = models.ForeignKey("clients.Client", on_delete=models.CASCADE)
+
+    mf_client = models.CharField(max_length=30, blank=True)
+    adresse_client = models.CharField(max_length=200, blank=True)
+    telephone_client = models.CharField(max_length=30, blank=True)
+    email_client = models.CharField(max_length=100, blank=True)
+
+    total_ht = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    total_rem = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    base_tva = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    total_tva = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    total_ttc = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+
+    def __str__(self):
+        return f"AV {self.numero}"
+
+    # ==========================
+    # CALCUL TOTAL
+    # ==========================
+    def calculer_totaux(self):
+
+        total_ht = 0
+        total_rem = 0
+        base_tva = 0
+        total_tva = 0
+        total_ttc = 0
+
+        for ligne in self.lignes.all():
+
+            montant_ht = ligne.quantite * ligne.prix_ht
+            rem = montant_ht * (getattr(ligne, "taux_rem", 0) or 0) / 100
+            base = montant_ht - rem
+            tva = base * (getattr(ligne, "taux_tva", 0) or 0) / 100
+            ttc = base + tva
+
+            total_ht += montant_ht
+            total_rem += rem
+            base_tva += base
+            total_tva += tva
+            total_ttc += ttc
+
+        return {
+            "total_ht": total_ht,
+            "total_rem": total_rem,
+            "base_tva": base_tva,
+            "total_tva": total_tva,
+            "total_ttc": total_ttc,
+        }
+
+    # ==========================
+    # SAVE PROPRE
+    # ==========================
+    def save(self, *args, **kwargs):
+
+        if self.client:
+            self.mf_client = self.client.matricule_fiscal
+            self.adresse_client = self.client.adresse
+            self.telephone_client = self.client.telephone
+            self.email_client = self.client.email
+
+        if not self.numero:
+            self.numero = generer_numero_avoirclient()
+
+        super().save(*args, **kwargs)
+
+        # recalcul SAFE
+        self.calculer_totaux()
+        super().save(update_fields=[
+            "total_ht",
+            "total_rem",
+            "base_tva",
+            "total_tva",
+            "total_ttc"
+        ])
 
 
+# ==========================
+# LIGNES AVOIR CLIENT
+# ==========================
+class LigneAvoirClient(models.Model):
+
+    avoir_client = models.ForeignKey(
+        AvoirClient,
+        related_name="lignes",
+        on_delete=models.CASCADE
+    )
+
+    produit = models.ForeignKey("produits.Produit", on_delete=models.CASCADE)
+    quantite = models.DecimalField(max_digits=10, decimal_places=3)
+    prix_ht = models.DecimalField(max_digits=10, decimal_places=3)
+    taux_rem = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    taux_tva = models.DecimalField(max_digits=5, decimal_places=2, default=19)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # recalcul propre (comme bon livraison)
+        self.avoir_client.calculer_totaux()
+        self.avoir_client.save(update_fields=[
+            "total_ht",
+            "total_rem",
+            "base_tva",
+            "total_tva",
+            "total_ttc"
+        ])
+
+#--------------------------- Fin
 
 def generer_numero_facture():
     annee = now().year

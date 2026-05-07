@@ -2,6 +2,12 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from ventes.models import BonLivraison, Facture, Client
 from django.contrib.admin.views.decorators import staff_member_required
+# ---------------- PDF ----------------
+from django.shortcuts import render
+from django.db.models import Sum
+from ventes.models import BonLivraison
+from datetime import datetime
+from core.models import Societe  # selon ton app
 
 @staff_member_required
 def dashboard_admin(request):
@@ -177,7 +183,8 @@ def facturer_bons(request):
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Sum
-from ventes.models import BonLivraison
+from ventes.models import BonLivraison, AvoirClient
+from achats.models import AvoirFournisseur
 from fpdf import FPDF
 
 
@@ -220,13 +227,162 @@ def liste_bons_impression(request):
         "date_fin": date_fin,
     })
 
+#------ Listes des bons d'avoir clients  Html
+# ---------------- QUERYSET ----------------
+def get_avoirs_queryset(date_debut, date_fin):
+    bons =AvoirClient.objects.all()
 
-# ---------------- PDF ----------------
-from django.shortcuts import render
-from django.db.models import Sum
-from ventes.models import BonLivraison
-from datetime import datetime
-from core.models import Societe  # selon ton app
+    if date_debut:
+        bons = bons.filter(date__gte=date_debut)
+
+    if date_fin:
+        bons = bons.filter(date__lte=date_fin)
+
+    return bons.order_by("date")
+
+
+
+def liste_avoirs_clients(request):
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+
+    bons = get_avoirs_queryset(date_debut, date_fin)
+
+    totaux = bons.aggregate(
+        total_ht=Sum("total_ht"),
+        total_rem=Sum("total_rem"),
+        base_tva=Sum("base_tva"),
+        total_tva=Sum("total_tva"),
+        total_ttc=Sum("total_ttc"),
+    )
+
+    # éviter None
+    for k in totaux:
+        totaux[k] = totaux[k] or 0
+
+    return render(request, "editions/liste_avoirs_clients.html", {
+        "bons": bons,
+        "totaux": totaux,
+        "date_debut": date_debut,
+        "date_fin": date_fin,
+    })
+
+def liste_avoirs_clients_pdf(request):
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+    
+    # Queryset des bons comme avant
+    bons = AvoirClient.objects.all()
+    if date_debut:
+        bons = bons.filter(date__gte=date_debut)
+    if date_fin:
+        bons = bons.filter(date__lte=date_fin)
+    bons = bons.order_by("date")
+
+    totaux = bons.aggregate(
+        total_ht=Sum("total_ht"),
+        total_rem=Sum("total_rem"),
+        base_tva=Sum("base_tva"),
+        total_tva=Sum("total_tva"),
+        total_ttc=Sum("total_ttc"),
+    )
+    for k in totaux:
+        totaux[k] = totaux[k] or 0
+
+    # Récupérer la société (ex: première)
+    societe = Societe.objects.first()
+
+    import datetime
+    today = datetime.datetime.now()
+
+    return render(request, "editions/liste_avoirs_clients_pdf.html", {
+        "bons": bons,
+        "totaux": totaux,
+        "date_debut": date_debut,
+        "date_fin": date_fin,
+        "societe": societe,
+        "today": today,
+    })
+
+
+#------ Avoirs fournisseurs
+def get_avoirs_fournisseurs_queryset(date_debut, date_fin):
+    bons =AvoirFournisseur.objects.all()
+
+    if date_debut:
+        bons = bons.filter(date__gte=date_debut)
+
+    if date_fin:
+        bons = bons.filter(date__lte=date_fin)
+
+    return bons.order_by("date")
+
+
+
+def liste_avoirs_fournisseurs(request):
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+
+    bons = get_avoirs_fournisseurs_queryset(date_debut, date_fin)
+
+    totaux = bons.aggregate(
+        total_ht=Sum("total_ht"),
+        total_rem=Sum("total_rem"),
+        base_tva=Sum("base_tva"),
+        total_tva=Sum("total_tva"),
+        total_ttc=Sum("total_ttc"),
+    )
+
+    # éviter None
+    for k in totaux:
+        totaux[k] = totaux[k] or 0
+
+    return render(request, "editions/liste_avoirs_fournisseurs.html", {
+        "bons": bons,
+        "totaux": totaux,
+        "date_debut": date_debut,
+        "date_fin": date_fin,
+    })
+
+def liste_avoirs_fournisseurs_pdf(request):
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+    
+    # Queryset des bons comme avant
+    bons = AvoirFournisseur.objects.all()
+    if date_debut:
+        bons = bons.filter(date__gte=date_debut)
+    if date_fin:
+        bons = bons.filter(date__lte=date_fin)
+    bons = bons.order_by("date")
+
+    totaux = bons.aggregate(
+        total_ht=Sum("total_ht"),
+        total_rem=Sum("total_rem"),
+        base_tva=Sum("base_tva"),
+        total_tva=Sum("total_tva"),
+        total_ttc=Sum("total_ttc"),
+    )
+    for k in totaux:
+        totaux[k] = totaux[k] or 0
+
+    # Récupérer la société (ex: première)
+    societe = Societe.objects.first()
+
+    import datetime
+    today = datetime.datetime.now()
+
+    return render(request, "editions/liste_avoirs_fournisseurs_pdf.html", {
+        "bons": bons,
+        "totaux": totaux,
+        "date_debut": date_debut,
+        "date_fin": date_fin,
+        "societe": societe,
+        "today": today,
+    })
+
+
+#------ Fin
 
 def liste_bons_pdf(request):
     date_debut = request.GET.get("date_debut")
@@ -288,6 +444,19 @@ def liste_factures_impression(request):
 
     factures = factures.order_by("date")
 
+    total_r_source = 0
+
+    for f in factures:
+        ttc = f.total_ttc or 0
+        ttc = float(ttc)   # 🔥 important
+
+        if ttc >= 1000:
+            f.r_source = round(ttc * 0.01, 3)
+        else:
+            f.r_source = 0
+
+        total_r_source += f.r_source
+
     totaux = factures.aggregate(
         total_ht=Sum("total_ht"),
         total_rem=Sum("total_rem"),
@@ -305,6 +474,7 @@ def liste_factures_impression(request):
     return render(request, "editions/liste_factures_impression.html", {
         "factures": factures,
         "totaux": totaux,
+        "total_r_source": total_r_source,
         "date_debut": date_debut,
         "date_fin": date_fin,
         "societe": societe,
@@ -329,6 +499,19 @@ def liste_factures_pdf(request):
         factures = factures.filter(date__lte=date_fin)
     factures = factures.order_by("date")
 
+    total_r_source = 0
+
+    for f in factures:
+        ttc = f.total_ttc or 0
+        ttc = float(ttc)   # 🔥 important
+
+        if ttc >= 1000:
+            f.r_source = round(ttc * 0.01, 3)
+        else:
+            f.r_source = 0
+
+        total_r_source += f.r_source
+
     totaux = factures.aggregate(
         total_ht=Sum("total_ht"),
         total_rem=Sum("total_rem"),
@@ -345,6 +528,7 @@ def liste_factures_pdf(request):
     return render(request, "editions/liste_factures_pdf.html", {
         "factures": factures,
         "totaux": totaux,
+        "total_r_source": total_r_source,
         "date_debut": date_debut,
         "date_fin": date_fin,
         "societe": societe,
@@ -373,6 +557,19 @@ def liste_factachats_impression(request):
 
     factures = factures.order_by("date")
 
+    total_r_source = 0
+
+    for f in factures:
+        ttc = f.total_ttc or 0
+        ttc = float(ttc)   # 🔥 important
+
+        if ttc >= 1000:
+            f.r_source = round(ttc * 0.01, 3)
+        else:
+            f.r_source = 0
+
+        total_r_source += f.r_source
+
     totaux = factures.aggregate(
         total_ht=Sum("total_ht"),
         total_rem=Sum("total_rem"),
@@ -390,6 +587,7 @@ def liste_factachats_impression(request):
     return render(request, "editions/liste_factachats_impression.html", {
         "factures": factures,
         "totaux": totaux,
+        "total_r_source": total_r_source,
         "date_debut": date_debut,
         "date_fin": date_fin,
         "societe": societe,
@@ -408,6 +606,20 @@ def liste_factachats_pdf(request):
         factures = factures.filter(date__lte=date_fin)
     factures = factures.order_by("date")
 
+    total_r_source = 0
+
+    for f in factures:
+        ttc = f.total_ttc or 0
+        ttc = float(ttc)   # 🔥 important
+
+        if ttc >= 1000:
+            f.r_source = round(ttc * 0.01, 3)
+        else:
+            f.r_source = 0
+
+        total_r_source += f.r_source
+
+
     totaux = factures.aggregate(
         total_ht=Sum("total_ht"),
         total_rem=Sum("total_rem"),
@@ -424,6 +636,7 @@ def liste_factachats_pdf(request):
     return render(request, "editions/liste_factachats_pdf.html", {
         "factures": factures,
         "totaux": totaux,
+        "total_r_source": total_r_source,
         "date_debut": date_debut,
         "date_fin": date_fin,
         "societe": societe,

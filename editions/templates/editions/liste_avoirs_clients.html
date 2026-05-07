@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-
 <html>
 <head>
+
+  
     <meta charset="UTF-8">
-    <title>Etat Bons de Livraison</title>
+    <title>Etat des Avoirs clients</title>
 
     <style>
         body {
@@ -57,6 +58,7 @@
             cursor: pointer;
         }
 
+        /* Impression */
         @media print {
             .actions {
                 display: none;
@@ -70,6 +72,7 @@
 </head>
 
 <body>
+
 <div class="actions">
     <form method="get">
         Date début :
@@ -83,15 +86,19 @@
     </form>
 </div>
 
-<h1>ETAT DES FACTURES</h1>
+<h1>ETAT DES Avoirs clients</h1>
 
 <div class="periode">
     Du {{ date_debut|default:"..." }} au {{ date_fin|default:"..." }}
 </div>
 
+
+
+<!-- Bouton Imprimer PDF aligné à droite -->
 <div style="text-align: right; margin-bottom: 15px;">
-    <a href="{% url 'liste_factures_pdf' %}?{% if date_debut %}date_debut={{ date_debut }}&{% endif %}{% if date_fin %}date_fin={{ date_fin }}{% endif %}" 
-       target="_blank">
+    <a href="{% url 'liste_avoirs_clients_pdf' %}?{% if date_debut %}date_debut={{ date_debut }}&{% endif %}{% if date_fin %}date_fin={{ date_fin }}{% endif %}" 
+       target="_blank" 
+       class="btn-imprimer">
         Imprimer PDF
     </a>
 </div>
@@ -105,17 +112,12 @@
             <th>Remise</th>
             <th>Base TVA</th>
             <th>TVA</th>
-
-            <!-- 🆕 TIMBRE -->
-            <th>Timbre</th>
-
             <th>Total TTC</th>
-            <th>R Source</th>
         </tr>
     </thead>
 
     <tbody>
-        {% for bon in factures %}
+        {% for bon in bons %}
         <tr>
             <td class="left">{{ bon.date|date:"d/m/Y" }}</td>
             <td class="left">{{ bon.numero }}</td>
@@ -123,16 +125,11 @@
             <td>{{ bon.total_rem|floatformat:3 }}</td>
             <td>{{ bon.base_tva|floatformat:3 }}</td>
             <td>{{ bon.total_tva|floatformat:3 }}</td>
-
-            <!-- 🆕 TIMBRE FIXE -->
-            <td>1.000</td>
-
             <td>{{ bon.total_ttc|floatformat:3 }}</td>
-            <td class="right">{{ bon.r_source|floatformat:3 }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="8">Aucun résultat</td>
+            <td colspan="7">Aucun résultat</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -140,16 +137,11 @@
     <tfoot>
         <tr class="totaux">
             <td colspan="2" class="left">TOTAL GENERAL</td>
-
             <td>{{ totaux.total_ht|default:0|floatformat:3 }}</td>
             <td>{{ totaux.total_rem|default:0|floatformat:3 }}</td>
             <td>{{ totaux.base_tva|default:0|floatformat:3 }}</td>
             <td>{{ totaux.total_tva|default:0|floatformat:3 }}</td>
-
-            <!-- 🆕 TOTAL TIMBRE -->
-            <td>{{ factures|length|default:0|floatformat:3 }}</td>
-            <td class="right">{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
-            <td class="right">{{ total_r_source|floatformat:3 }}</td>
+            <td>{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
         </tr>
     </tfoot>
 </table>

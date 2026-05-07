@@ -1,10 +1,8 @@
-
 <!DOCTYPE html>
-
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>État des Factures</title>
+    <title>État des Avoirs fournisseurs</title>
 
     <style>
         body {
@@ -13,6 +11,7 @@
             color: #333;
         }
 
+        /* 🏢 HEADER ERP */
         .header {
             text-align: center;
             margin-bottom: 15px;
@@ -91,9 +90,14 @@
             background-color: #163b5a;
         }
 
+        /* Impression */
         @media print {
-            .actions { display: none; }
-            body { margin: 10px; }
+            .actions {
+                display: none;
+            }
+            body {
+                margin: 10px;
+            }
             footer {
                 position: fixed;
                 bottom: 0;
@@ -107,10 +111,12 @@
 
 <body>
 
+<!-- 🔘 Actions -->
 <div class="actions">
     <button onclick="window.print()">Imprimer / Aperçu</button>
 </div>
 
+<!-- 🏢 ENTETE SOCIETE -->
 <div class="header">
 
     <div class="societe">
@@ -120,73 +126,60 @@
         Tél : {{ societe.telephone }} | Email : {{ societe.email }}
     </div>
 
-    <h1>LISTE DES FACTURES</h1>
+    <h1>Liste des Avoirs fournisseurs</h1>
 
 </div>
 
+<!-- 📅 PERIODE -->
 <div class="periode">
     Du {{ date_debut|default:"..." }} au {{ date_fin|default:"..." }}
 </div>
 
+<!-- 📊 TABLE -->
 <table>
     <thead>
         <tr>
             <th>Date</th>
             <th>Numéro</th>
-            <th>Client</th>
             <th>Total HT</th>
             <th>Remise</th>
             <th>Base TVA</th>
             <th>TVA</th>
-            <th>Timb.Fis</th>
             <th>Total TTC</th>
-            <th>R Source</th>
         </tr>
     </thead>
 
     <tbody>
-        {% for facture in factures %}
+        {% for bon in bons %}
         <tr>
-            <td class="left">{{ facture.date|date:"d/m/Y" }}</td>
-            <td class="left">{{ facture.numero }}</td>
-            <td class="left">{{ facture.client }}</td>
-            <td class="right">{{ facture.total_ht|floatformat:3 }}</td>
-            <td class="right">{{ facture.total_rem|floatformat:3 }}</td>
-            <td class="right">{{ facture.base_tva|floatformat:3 }}</td>
-            <td class="right">{{ facture.total_tva|floatformat:3 }}</td>
-
-            <!-- 🆕 TIMBRE FISCAL FIXE -->
-            <td class="right">{{ 1|floatformat:3 }}</td>
-
-            <td class="right">{{ facture.total_ttc|floatformat:3 }}</td>
-            <td class="right">{{ facture.r_source|floatformat:3 }}</td>
+            <td class="left">{{ bon.date|date:"d/m/Y" }}</td>
+            <td class="left">{{ bon.numero }}</td>
+            <td class="right">{{ bon.total_ht|floatformat:3 }}</td>
+            <td class="right">{{ bon.total_rem|floatformat:3 }}</td>
+            <td class="right">{{ bon.base_tva|floatformat:3 }}</td>
+            <td class="right">{{ bon.total_tva|floatformat:3 }}</td>
+            <td class="right">{{ bon.total_ttc|floatformat:3 }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="9" class="left">Aucun résultat</td>
+            <td colspan="7" class="left">Aucun résultat</td>
         </tr>
         {% endfor %}
     </tbody>
 
     <tfoot>
         <tr>
-            <td colspan="3" class="left">TOTAL GENERAL</td>
-
+            <td colspan="2" class="left">TOTAL GENERAL</td>
             <td class="right">{{ totaux.total_ht|default:0|floatformat:3 }}</td>
             <td class="right">{{ totaux.total_rem|default:0|floatformat:3 }}</td>
             <td class="right">{{ totaux.base_tva|default:0|floatformat:3 }}</td>
             <td class="right">{{ totaux.total_tva|default:0|floatformat:3 }}</td>
-
-            <!-- colonne timbre -->
-            <td class="right">{{ factures|length|default:0|floatformat:3 }}</td>
-
             <td class="right">{{ totaux.total_ttc|default:0|floatformat:3 }}</td>
-            <td class="right">{{ total_r_source|floatformat:3 }}</td>
         </tr>
     </tfoot>
-
 </table>
 
+<!-- 📄 FOOTER -->
 <footer>
     Date impression : {{ today|date:"d/m/Y H:i" }}
 </footer>

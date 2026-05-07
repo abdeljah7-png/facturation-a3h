@@ -72,3 +72,14 @@ def produit_info(request, produit_id):
     }
 
     return JsonResponse(data)
+
+from django.shortcuts import get_object_or_404
+from .models import AvoirFournisseur
+from .avoir_fournisseur_pdf import generer_avoir_fournisseur_pdf
+
+
+def avoir_fournisseur_pdf(request, pk):
+
+    avoir = get_object_or_404(AvoirFournisseur, pk=pk)
+
+    return generer_avoir_fournisseur_pdf(avoir)
