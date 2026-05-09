@@ -21,7 +21,7 @@ def generer_facture_pdf(facture):
         rightMargin=30,
         leftMargin=30,
         topMargin=10,
-        bottomMargin=30,
+        bottomMargin=20,
     )
 
     elements = []
@@ -111,7 +111,7 @@ def generer_facture_pdf(facture):
         ["Email", facture.email_client or ""],
     ]
 
-    client_table = Table(client_data, colWidths=[5*cm, 13*cm])
+    client_table = Table(client_data, colWidths=[4*cm, 8*cm])
 
     client_table.setStyle(TableStyle([
         ("GRID", (0, 0), (-1, -1), 0.3, colors.grey),
@@ -127,7 +127,7 @@ def generer_facture_pdf(facture):
 
     lignes = list(facture.lignes.all())
 
-    lignes_par_page = 16
+    lignes_par_page = 14
     total_lignes = len(lignes)
 
     pages = (total_lignes // lignes_par_page) + 1
@@ -181,6 +181,8 @@ def generer_facture_pdf(facture):
         if page < pages - 1:
             elements.append(PageBreak())
 
+    from num2words import num2words
+
     elements.append(Spacer(1, 20))
 
     # ======================
@@ -189,16 +191,36 @@ def generer_facture_pdf(facture):
 
     totaux = facture.calculer_totaux()
 
+    # -------- montant en lettres --------
+
+    montant = totaux['total_ttc']
+
+    dinars = int(montant)
+    millimes = int(round((montant - dinars) * 1000))
+
+    montant_lettre = (
+        f"{num2words(dinars, lang='fr')} dinars"
+    )
+
+    if millimes:
+        montant_lettre += (
+            f" et {num2words(millimes, lang='fr')} millimes"
+        )
+
+    # -------- tableau --------
+
     total_data = [
+
         ["Total HT", f"{totaux['total_ht']:.3f} TND"],
         ["Total Remise", f"{totaux['total_rem']:.3f} TND"],
         ["Base TVA", f"{totaux['base_tva']:.3f} TND"],
         ["Total TVA", f"{totaux['total_tva']:.3f} TND"],
         ["Timbre.fiscale", f"{1:.3f} TND"],
         ["Total TTC", f"{totaux['total_ttc']:.3f} TND"],
+
     ]
 
-    total_table = Table(total_data, colWidths=[6*cm, 4*cm])
+    total_table = Table(total_data, colWidths=[6*cm, 13*cm])
 
     total_table.setStyle(TableStyle([
         ("GRID", (0, 0), (-1, -1), 0.8, colors.black),
@@ -208,14 +230,21 @@ def generer_facture_pdf(facture):
 
     elements.append(total_table)
     elements.append(Spacer(1, 20))
-    
-    # ======================
-    # CONDITIONS
-    # ======================
+ 
+    elements.append(
+        Paragraph(
+            f"<b>Arrêtée la présente facture à la somme de :</b> {montant_lettre}"
+        )
+    )
 
-    # ======================
-    # GENERATION PDF
-    # ======================
+#    elements.append(Spacer(1, 50))
+
+    elements.append(
+        Paragraph(
+            "<para alignment='right'><b>Cachet et Signature</b><br/><br/><br/></para>"
+        )
+    )
+
 
     doc.build(elements)
 

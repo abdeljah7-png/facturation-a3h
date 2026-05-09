@@ -112,7 +112,7 @@ def calcul_releve_client(client, date_debut=None, date_fin=None):
     for b in bons:
         mouvements.append({
             "date": b.date,
-            "libelle": f"Bon n° {b.numero}",
+            "libelle": f" {b.numero}",
             "debit": Decimal(b.total_ttc or 0),
             "credit": Decimal(0),
             "lignes": b.lignes.all()
@@ -121,7 +121,7 @@ def calcul_releve_client(client, date_debut=None, date_fin=None):
     for a in avoirs:
         mouvements.append({
             "date": a.date,
-            "libelle": f"Avoir n° {a.numero}",
+            "libelle": f"{a.numero}",
             "debit": Decimal(0),
             "credit": Decimal(a.total_ttc or 0),
             "lignes": a.lignes.all()

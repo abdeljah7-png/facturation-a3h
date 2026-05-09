@@ -17,7 +17,7 @@ def acceuil(request):
 
         if user:
             login(request, user)
-            return redirect('/admin/')
+            return redirect('/admin')
 
     return render(request, "acceuil.html")
 
