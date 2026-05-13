@@ -2,6 +2,15 @@ from django.db import models
 
 class Fournisseur(models.Model):
 
+    TYPE_CONTRIBUABLE = (
+        ("PP", "Personne Physique"),
+        ("PM", "Personne Morale"),
+    )
+    type_contribuable = models.CharField(
+        max_length=2,
+        choices=TYPE_CONTRIBUABLE,
+        default="PM"
+    )
     nom = models.CharField(max_length=200)
     matricule_fiscal = models.CharField(max_length=50, blank=True, null=True)
     adresse = models.TextField(blank=True)

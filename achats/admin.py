@@ -237,6 +237,13 @@ class LigneFactureAchatInline(admin.TabularInline):
 # =====================================================
 # ADMIN FACTURE ACHAT
 # =====================================================
+@admin.action(description="Marquer comme payées")
+def marquer_payees(modeladmin, request, queryset):
+
+    queryset.update(statut="payee")
+
+
+from django.utils.html import format_html
 
 @admin.register(FactureAchat)
 class FactureAchatAdmin(admin.ModelAdmin):
@@ -256,12 +263,8 @@ class FactureAchatAdmin(admin.ModelAdmin):
         "fournisseur",
         "date",
         "total_ttc",
-        "statut_colore",
         "bouton_pdf",
-    )
-    list_filter = (
-        "statut",
-        "date",
+        "colored_statut",
     )
     search_fields = (
         "numero",
@@ -280,6 +283,43 @@ class FactureAchatAdmin(admin.ModelAdmin):
         "statut",
     )
 
+    # =========================
+    # COULEUR STATUT
+    # =========================
+    def colored_statut(self, obj):
+
+        colors = {
+            "brouillon": "#90EE90",   # lightgreen
+            "validee": "#008000",     # vert
+            "payee": "#FF0000",       # rouge
+        }
+
+        labels = {
+            "brouillon": "Brouillon",
+            "validee": "Validée",
+            "payee": "Payée",
+        }
+
+        color = colors.get(obj.statut, "gray")
+        label = labels.get(obj.statut, obj.statut)
+
+        return format_html(
+            '''
+            <span style="
+                background:{};
+                color:white;
+                padding:4px 10px;
+                border-radius:10px;
+                font-weight:bold;
+            ">
+                {}
+            </span>
+            ''',
+            color,
+            label
+        )
+
+    colored_statut.short_description = "Statut"
 
     # ===============================
     # STATUT COULEUR

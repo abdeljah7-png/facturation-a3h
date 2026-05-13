@@ -22,6 +22,7 @@ class FournisseurAdmin(admin.ModelAdmin):
         'voir_releve',
     )
     search_fields = (
+        "type_contribuable",
         "nom",
         "matricule_fiscal",
         "telephone",

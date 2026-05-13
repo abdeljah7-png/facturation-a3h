@@ -9,10 +9,9 @@ db.sqlite3
 *.log
 
 # Environment
-.env
 venv/
-env/
-
+__pycache__/
+*.pyc
 # IDE
 .vscode/
 .idea/
@@ -23,3 +22,8 @@ Thumbs.db
 
 staticfiles/
 reload.txt
+staticfiles/
+media/
+db.sqlite3
+__pycache__/
+*.pyc

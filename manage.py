@@ -3,6 +3,7 @@
 import os
 import sys
 
+
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'erp.settings')
@@ -15,6 +16,8 @@ def main():
             "Did you forget to activate a virtual environment?"
         ) from exc
 
+    import startup_license
+    startup_license.verify_license()
     execute_from_command_line(sys.argv)
 
 if __name__ == '__main__':

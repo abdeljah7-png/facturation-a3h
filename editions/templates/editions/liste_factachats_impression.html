@@ -72,32 +72,97 @@
 <body>
 
 <div class="actions">
-    <form method="get">
+
+    <form method="get" id="mainForm">
+
         Date début :
-        <input type="date" name="date_debut" value="{{ date_debut }}">
+        <input type="date"
+               name="date_debut"
+               id="date_debut"
+               value="{{ date_debut }}">
 
         Date fin :
-        <input type="date" name="date_fin" value="{{ date_fin }}">
+        <input type="date"
+               name="date_fin"
+               id="date_fin"
+               value="{{ date_fin }}">
 
-        <button type="submit">Filtrer</button>
-        <button type="button" onclick="window.print()">Imprimer</button>
+        <button type="submit">
+            Filtrer
+        </button>
+
+        <button type="button" onclick="window.print()">
+            Imprimer
+        </button>
+
     </form>
+
 </div>
 
-<h1>ETAT DES FACTURES D'ACHATS PERIODIQUES </h1>
+<h1>ETAT DES FACTURES D'ACHATS PERIODIQUES</h1>
 
 <div class="periode">
-    Du {{ date_debut|default:"..." }} au {{ date_fin|default:"..." }}
+    Du {{ date_debut|default:"..." }}
+    au {{ date_fin|default:"..." }}
 </div>
 
-<!-- Bouton Imprimer PDF aligné à droite -->
-<div style="text-align: right; margin-bottom: 15px;">
-    <a href="{% url 'liste_factachats_pdf' %}?{% if date_debut %}date_debut={{ date_debut }}&{% endif %}{% if date_fin %}date_fin={{ date_fin }}{% endif %}" 
-       target="_blank" 
-       class="btn-imprimer">
+<!-- Actions droite -->
+<div style="
+    text-align:right;
+    margin-bottom:15px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+">
+
+    <!-- PDF -->
+    <a href="{% url 'liste_factachats_pdf' %}?{% if date_debut %}date_debut={{ date_debut }}&{% endif %}{% if date_fin %}date_fin={{ date_fin }}{% endif %}"
+       target="_blank"
+       class="btn btn-primary">
+
         Imprimer PDF
+
     </a>
+
+    <!-- XML -->
+    <button type="button"
+            class="btn btn-success"
+            onclick="generateXML()">
+
+        Générer XML TEJ
+
+    </button>
+
 </div>
+
+<script>
+
+function generateXML() {
+
+    const d1 = document.getElementById("date_debut").value;
+    const d2 = document.getElementById("date_fin").value;
+
+    if (!d1 || !d2) {
+
+        alert("Veuillez sélectionner une période");
+        return;
+    }
+
+    if (d1 > d2) {
+
+        alert("Date début doit être <= date fin");
+        return;
+    }
+
+    const url =
+        "{% url 'export-factachats-xml' %}" +
+        "?date_debut=" + d1 +
+        "&date_fin=" + d2;
+
+    window.location.href = url;
+}
+
+</script>
 
 <table>
     <thead>

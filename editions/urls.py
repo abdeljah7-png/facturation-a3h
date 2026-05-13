@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from .views import facturation_globale,liste_bons_pdf,liste_factures_pdf,liste_factures_impression,liste_factachats_impression
 from .views import liste_factachats_pdf,  liste_avoirs_clients, liste_avoirs_clients_pdf
-from .views import liste_avoirs_fournisseurs, liste_avoirs_fournisseurs_pdf
+from .views import liste_avoirs_fournisseurs, liste_avoirs_fournisseurs_pdf,export_factachats_xml
 
 
 
@@ -20,4 +20,5 @@ urlpatterns = [
     path('liste_factures_pdf/', views.liste_factures_pdf, name='liste_factures_pdf'),
     path('liste_factachats_impression/', views.liste_factachats_impression, name='liste_factachats_impression'),
     path('liste_factachats_pdf/', views.liste_factachats_pdf, name='liste_factachats_pdf'),
+    path('export-factachats-xml/', views.export_factachats_xml, name='export-factachats-xml'),
 ]

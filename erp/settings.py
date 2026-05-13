@@ -6,6 +6,9 @@ LOGIN_URL = '/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 # ----------------------
 # SECURITY
 # ----------------------
@@ -13,11 +16,7 @@ SECRET_KEY = '+n#^73%_1y3mjn+#kpo--84(5-i%2k7wfr$(+=80h3af*bj2r8'
 
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    'a3h.pythonanywhere.com',
-    'localhost',
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = ["*"]
 
 # ----------------------
 # APPS

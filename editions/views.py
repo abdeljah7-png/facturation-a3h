@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 from django.db.models import Sum
 from ventes.models import BonLivraison
-from datetime import datetime
+#from datetime import datetime
 from core.models import Societe  # selon ton app
 
 @staff_member_required
@@ -425,13 +425,17 @@ def liste_bons_pdf(request):
 #-------------------- Liste des factures
 
 # ---------------- HTML ----------------
-from django.shortcuts import render
-from django.db.models import Sum
-from ventes.models import Facture
-from core.models import Societe
-import datetime
 
 def liste_factures_impression(request):
+
+    from django.shortcuts import render
+    from django.db.models import Sum
+    from ventes.models import Facture
+    from core.models import Societe
+    import datetime
+
+
+
     date_debut = request.GET.get("date_debut")
     date_fin = request.GET.get("date_fin")
 
@@ -481,13 +485,16 @@ def liste_factures_impression(request):
         "today": today,
     })
 
-from django.shortcuts import render
-from django.db.models import Sum
-from ventes.models import Facture  # Remplacer BonLivraison par Facture
-from core.models import Societe
-import datetime
 
 def liste_factures_pdf(request):
+
+    from django.shortcuts import render
+    from django.db.models import Sum
+    from ventes.models import Facture  # Remplacer BonLivraison par Facture
+    from core.models import Societe
+    import datetime
+
+
     date_debut = request.GET.get("date_debut")
     date_fin = request.GET.get("date_fin")
     
@@ -538,13 +545,15 @@ def liste_factures_pdf(request):
 #--------------------------------------- 
 
 # ----------------Factures achats  HTML ----------------
-from django.shortcuts import render
-from django.db.models import Sum
-from achats.models import FactureAchat
-from core.models import Societe
-import datetime
 
 def liste_factachats_impression(request):
+
+    from django.shortcuts import render
+    from django.db.models import Sum
+    from achats.models import FactureAchat
+    from core.models import Societe
+    import datetime
+
     date_debut = request.GET.get("date_debut")
     date_fin = request.GET.get("date_fin")
 
@@ -595,6 +604,14 @@ def liste_factachats_impression(request):
     })
 
 def liste_factachats_pdf(request):
+
+    from django.shortcuts import render
+    from django.db.models import Sum
+    from achats.models import FactureAchat
+    from core.models import Societe
+    import datetime
+
+
     date_debut = request.GET.get("date_debut")
     date_fin = request.GET.get("date_fin")
     
@@ -643,4 +660,214 @@ def liste_factachats_pdf(request):
         "today": today,
     })
 
-#--------------------------------------- 
+#-----------------------------  Fichier xml
+
+def export_factachats_xml(request):
+
+    # =========================================
+    # PARAMETRES
+    # =========================================
+
+    import xml.etree.ElementTree as ET
+    from decimal import Decimal, ROUND_HALF_UP
+    from datetime import datetime
+
+    from django.http import HttpResponse
+    from django.db.models import Q
+
+    from achats.models import FactureAchat
+
+
+
+    date_debut = request.GET.get("date_debut")
+    date_fin = request.GET.get("date_fin")
+
+    if not date_debut or not date_fin:
+        return HttpResponse("Dates manquantes", status=400)
+
+    date_debut = datetime.strptime(date_debut, "%Y-%m-%d").date()
+    date_fin = datetime.strptime(date_fin, "%Y-%m-%d").date()
+
+    MATRICULE_DECLARANT = "0001238L"
+    CODE_ACTE = "0"
+
+    exercice = date_debut.strftime("%Y")
+    mois = date_debut.strftime("%m")
+
+    # =========================================
+    # FACTURES (SAFE)
+    # =========================================
+    factures = FactureAchat.objects.filter(
+        date__range=(date_debut, date_fin),
+        total_ttc__isnull=False,
+        total_ttc__gte=Decimal("1000.000")
+    ).exclude(
+        statut="payee"
+    ).order_by("date")
+
+    # =========================================
+    # HELPERS
+    # =========================================
+
+    def clean(value):
+        return str(value).strip() if value else ""
+
+    def fmt(value):
+        return str(
+            Decimal(value or 0).quantize(
+                Decimal("0.000"),
+                rounding=ROUND_HALF_UP
+            )
+        )
+
+    def calcul_rs(ttc):
+        rs = (Decimal(ttc or 0) - Decimal("1")) * Decimal("0.01")
+        return rs.quantize(Decimal("0.000"), rounding=ROUND_HALF_UP)
+
+    # =========================================
+    # ROOT
+    # =========================================
+
+    root = ET.Element("DeclarationsRS", VersionSchema="1.0")
+
+    # =========================================
+    # DECLARANT
+    # =========================================
+
+    declarant = ET.SubElement(root, "Declarant")
+    ET.SubElement(declarant, "TypeIdentifiant").text = "1"
+    ET.SubElement(declarant, "Identifiant").text = MATRICULE_DECLARANT
+    ET.SubElement(declarant, "CategorieContribuable").text = "PM"
+
+    # =========================================
+    # REFERENCE DECLARATION
+    # =========================================
+
+    reference = ET.SubElement(root, "ReferenceDeclaration")
+    ET.SubElement(reference, "ActeDepot").text = CODE_ACTE
+    ET.SubElement(reference, "AnneeDepot").text = exercice
+    ET.SubElement(reference, "MoisDepot").text = mois
+
+    # =========================================
+    # AJOUT CERTIFICATS
+    # =========================================
+
+    ajouter_certificats = ET.SubElement(root, "AjouterCertificats")
+
+    # =========================================
+    # BOUCLE FACTURES
+    # =========================================
+
+    for facture in factures:
+
+        fournisseur = facture.fournisseur
+
+        # -------------------------
+        # SAFE DATA
+        # -------------------------
+
+        mf = clean(facture.mf_fournisseur).upper()
+
+        nom = fournisseur.nom if fournisseur else ""
+
+        type_contrib = (
+            fournisseur.type_contribuable
+            if fournisseur and fournisseur.type_contribuable
+            else "PM"
+        )
+
+        date_pay = (
+            facture.date.strftime("%Y-%m-%d")
+            if facture.date else ""
+        )
+
+        total_ht = facture.total_ht or 0
+        total_tva = facture.total_tva or 0
+        total_ttc = facture.total_ttc or 0
+
+        montant_rs = calcul_rs(total_ttc)
+        montant_net = total_ttc - montant_rs
+
+        # =====================================
+        # CERTIFICAT
+        # =====================================
+
+        certificat = ET.SubElement(ajouter_certificats, "Certificat")
+
+        beneficiaire = ET.SubElement(certificat, "Beneficiaire")
+        id_taxpayer = ET.SubElement(beneficiaire, "IdTaxpayer")
+        matricule_fiscal = ET.SubElement(id_taxpayer, "MatriculeFiscal")
+
+        ET.SubElement(matricule_fiscal, "TypeIdentifiant").text = "1"
+        ET.SubElement(matricule_fiscal, "Identifiant").text = mf
+        ET.SubElement(matricule_fiscal, "CategorieContribuable").text = type_contrib
+
+        ET.SubElement(beneficiaire, "Resident").text = "true"
+        ET.SubElement(beneficiaire, "NomPrenomOuRaisonSociale").text = nom
+        ET.SubElement(beneficiaire, "Adresse").text = clean(facture.adresse_fournisseur)
+        ET.SubElement(beneficiaire, "AdresseMail").text = clean(facture.email_fournisseur)
+        ET.SubElement(beneficiaire, "NumTel").text = clean(facture.telephone_fournisseur)
+
+        ET.SubElement(certificat, "DatePayement").text = date_pay
+        ET.SubElement(certificat, "Ref_certif_chez_declarant").text = clean(facture.numero)
+
+        # =====================================
+        # OPERATIONS
+        # =====================================
+
+        liste_operations = ET.SubElement(certificat, "ListeOperations")
+        operation = ET.SubElement(liste_operations, "Operation", IdTypeOperation="01")
+
+        ET.SubElement(operation, "AnneeFacturation").text = str(facture.date.year if facture.date else "")
+        ET.SubElement(operation, "MontantHT").text = fmt(total_ht)
+        ET.SubElement(operation, "TauxRS").text = "1.000"
+        ET.SubElement(operation, "TauxTVA").text = "19.000"
+        ET.SubElement(operation, "MontantTVA").text = fmt(total_tva)
+        ET.SubElement(operation, "MontantTTC").text = fmt(total_ttc)
+        ET.SubElement(operation, "MontantRS").text = fmt(montant_rs)
+        ET.SubElement(operation, "MontantNetServi").text = fmt(montant_net)
+
+        # =====================================
+        # TOTAL
+        # =====================================
+
+        total_payement = ET.SubElement(certificat, "TotalPayement")
+
+        ET.SubElement(total_payement, "TotalMontantHT").text = fmt(total_ht)
+        ET.SubElement(total_payement, "TotalMontantTVA").text = fmt(total_tva)
+        ET.SubElement(total_payement, "TotalMontantTTC").text = fmt(total_ttc)
+        ET.SubElement(total_payement, "TotalMontantRS").text = fmt(montant_rs)
+        ET.SubElement(total_payement, "TotalMontantNetServi").text = fmt(montant_net)
+
+    # =========================================
+    # RESPONSE
+    # =========================================
+
+    import os
+    from django.conf import settings
+    from django.http import HttpResponse
+    import xml.etree.ElementTree as ET
+
+    # nom du fichier
+    filename = f"{MATRICULE_DECLARANT}-{exercice}-{mois}-{CODE_ACTE}.xml"
+
+    # chemin complet dans MEDIA
+    media_dir = os.path.join(settings.MEDIA_ROOT, "xml_exports")
+    os.makedirs(media_dir, exist_ok=True)
+
+    file_path = os.path.join(media_dir, filename)
+
+    # sauvegarde physique du fichier
+    tree = ET.ElementTree(root)
+    tree.write(file_path, encoding="utf-8", xml_declaration=True)
+
+    # réponse HTTP pour téléchargement
+    response = HttpResponse(content_type="application/xml")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    # réécrire dans la réponse (important)
+    tree.write(response, encoding="utf-8", xml_declaration=True)
+
+    return response
+
+#----------------------------- Fin
